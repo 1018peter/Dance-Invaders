@@ -12,3 +12,8 @@ whether to use Gaussian Blur, and whether to sharpen the color (which is equival
  
  The program will output a preview image of the "compressed" file, a COE file representing the compressed file in dense matrix representation, 
  another in sparse matrix representation, and finally a diagnostics .txt file that displays metadata of the compression process.
+
+
+
+Note:
+Dependencies: Boost C++, OpenImageIO.
