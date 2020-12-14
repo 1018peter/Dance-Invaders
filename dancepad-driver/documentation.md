@@ -3,7 +3,7 @@
 #### Instructions: 
 1. Find the COM port that is connected to the board (use Device Manager, right-click on Windows icon)
 2. Plug in the Dancepad.
-3. Type in the COM port's name (ie. COM4)
+3. Type in the COM port's name (ie. COM4) You can input this field as a command-line argument, or you can input it after executing the file.
 4. If all goes well, the Allegro display should pop up. Highlight the Allegro display and use keyboard inputs for debug.
 5. Now, stepping on Dancepad buttons should send packets to the board.
 
