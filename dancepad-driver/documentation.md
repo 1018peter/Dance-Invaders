@@ -15,3 +15,6 @@
 - Button-Select pressed: 00010000
 - Button-Start pressed:  00100000
 - Button released (Idle): 00000000
+
+#### Notes:
+To compile the source code, you'll need to include Allegro5 libraries.
