@@ -192,6 +192,7 @@ int main(int argc, char* argv[]) {
 	// Event loop.
 	bool done = false;
 	bool print_event = false;
+	WriteFile(file, &event_packet, 1, &written, NULL);
 	while (!done) {
 		ALLEGRO_EVENT event;
 		al_wait_for_event(event_queue, &event);
