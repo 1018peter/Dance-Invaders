@@ -34,8 +34,8 @@ The start state.
     |
     V
 GAME_START -> LEVEL_START -> INGAME -> GAME_OVER -> SCOREBOARD
-     |             |            |          |            |
-     |             -- - - <- - --          |            |
+     |             |            |                       |
+     |             -- - - <- - --                       |
      ----------<----------<----------<---------<---------
 */
 parameter SCENE_GAME_START = 3'd1;
