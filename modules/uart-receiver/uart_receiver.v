@@ -19,13 +19,16 @@
 // TUTORIAL CODE IN https://www.instructables.com/UART-Communication-on-Basys-3-FPGA-Dev-Board-Power-1/
 //////////////////////////////////////////////////////////////////////////////////
 
+// TODO: Additional signal to denote the completion of a byte packet.
 
 module uart_receiver(
 
 input clk, //input clock
 input reset, //input reset 
 input RxD, //input receving data line
+output valid, //indicate the current RxData is a valid packet (rather than a packet in the process of being shifted in)
 output [7:0]RxData // output for 8 bits data
+// output [7:0]LED // output 8 LEDs
     );
     
 //internal variables
@@ -48,7 +51,7 @@ parameter div_bit = 10; // 1 start, 8 data, 1 stop
 
 
 assign RxData = rxshiftreg [8:1]; // assign the RxData from the shiftregister
-
+assign valid = state == 0; // The packet is valid when the receiver is idle.
 //UART receiver logic
 always @ (posedge clk)
     begin 
