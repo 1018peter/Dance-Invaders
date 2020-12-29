@@ -70,11 +70,11 @@ int main(int argc, char *argv[]) {
 	std::string cmd;
 	std::string filename;
 	bool verbose = true;
-	if (argc > 7) {
+	if (argc > 6) {
 		std::cout << "Too many arguments!\n";
 		return -1;
 	}
-	if (argc == 7) verbose = false;
+	if (argc == 6) verbose = false;
 
 	if (argc == 1) {
 		std::cout << "Please specify the filename: ";
@@ -315,7 +315,7 @@ int main(int argc, char *argv[]) {
 		for(int i = 0; i < 64; i++)
 			for(int j = 0; j < 64; j++)
 				for (int k = 0; k < 64; k++) {
-					if (hash_map[i][j][k].size()) std::cout << "(" << i << ", " << j << ", " << k << ") has size " << hash_map[i][j][k].size() << '\n';
+					if(verbose) if (hash_map[i][j][k].size()) std::cout << "(" << i << ", " << j << ", " << k << ") has size " << hash_map[i][j][k].size() << '\n';
 					if (hash_map[i][j][k].size() >= yres * xres / palette_size) {
 						if (verbose) std::cout << "Sampling (" << i << ", " << j << ", " << k << ")\n";
 						sampled_buckets.push_back(hash_map[i][j][k]);
@@ -409,7 +409,7 @@ int main(int argc, char *argv[]) {
 	if (verbose) std::cout << "Sparsity: " << float(biggest_bucket->size()) / float(yres * xres) << '\n';
 	diagnostics << "Computation results: \n";
 	diagnostics << "- Sparsity: " << float(biggest_bucket->size()) / float(yres * xres) << '\n';
-	diagnostics << "- Header size: " << palette_size * palette_id_size << " bits.\n";
+	diagnostics << "- Header size: " << palette_size * palette_id_size * 12 << " bits.\n";
 	diagnostics << "- Palette colors: \n";
 	std::swap(*pixel_buckets.begin(), *biggest_bucket);
 
