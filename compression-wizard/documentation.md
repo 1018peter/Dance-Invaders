@@ -7,11 +7,17 @@ whether to use Gaussian Blur, and whether to sharpen the color (which is equival
  
  The program also accepts command-line arguments, as follows:
  - Arg 1: A string, containing the filename.
- - Arg 2: An integer flag. 0 means not using Gaussian Blur.
- - Arg 3: An integer flag. 0 means not sharpening the color.
+ - Arg 2: The size of the palette. Should be a power of 2 greater than 1.
+ - Arg 3: An integer flag. 0 means not using Gaussian Blur.
+ - Arg 4: An integer flag. 0 means not sharpening the color.
+ - Arg 5: An integer flag. 0 means not looking for preexisting color chunks to initialize palettes with. A color chunk will only be used for initialization
+ if it is at least as large as a palette should be on average.
  
  The program will output a preview image of the "compressed" file, a COE file representing the compressed file in dense matrix representation, 
  another in sparse matrix representation, and finally a diagnostics .txt file that displays metadata of the compression process.
+ 
+ The COE files will be written to the directory "coe_dump", the preview will be written to the directory "preview", and the diagnostics will be written to
+ "diagnostics".
 
 
 
