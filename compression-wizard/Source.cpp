@@ -69,10 +69,12 @@ inline bool bit_select(integral_T from, int id) {
 int main(int argc, char *argv[]) {
 	std::string cmd;
 	std::string filename;
+	bool verbose = true;
 	if (argc > 7) {
 		std::cout << "Too many arguments!\n";
 		return -1;
 	}
+	if (argc == 7) verbose = false;
 
 	if (argc == 1) {
 		std::cout << "Please specify the filename: ";
@@ -88,7 +90,7 @@ int main(int argc, char *argv[]) {
 		std::cin >> cmd;
 		return -1;
 	}
-	std::cout << "Opened file " << filename << '\n';
+	if(verbose) std::cout << "Opened file " << filename << '\n';
 
 
 
@@ -101,10 +103,10 @@ int main(int argc, char *argv[]) {
 		std::cin >> cmd;
 		return -1;
 	}
-	std::cout << "Decoded image specs.\n";
+	if (verbose) std::cout << "Decoded image specs.\n";
 	std::vector<unsigned char> pixels(xres * yres * channels);
 	source->read_image(TypeDesc::UINT8, &pixels[0]);
-	std::cout << "Read file.\n";
+	if (verbose) std::cout << "Read file.\n";
 	source->close();
 
 
@@ -220,7 +222,7 @@ int main(int argc, char *argv[]) {
 		}
 		++byte_n;
 	}
-	std::cout << "Decoded RGB pixels.\n";
+	if (verbose) std::cout << "Decoded RGB pixels.\n";
 
 	if (sharpen) {
 		std::stack<std::pair<int, int>> dfs_stk;
@@ -300,7 +302,7 @@ int main(int argc, char *argv[]) {
 			pixel.G = UINT8(blurred.G / divi);
 			pixel.B = UINT8(blurred.B / divi);
 		}
-		std::cout << "Blur complete\n";
+		if (verbose) std::cout << "Blur complete\n";
 	}
 
 	std::list<std::vector<RGBPixel>> pixel_buckets;
@@ -315,7 +317,7 @@ int main(int argc, char *argv[]) {
 				for (int k = 0; k < 64; k++) {
 					if (hash_map[i][j][k].size()) std::cout << "(" << i << ", " << j << ", " << k << ") has size " << hash_map[i][j][k].size() << '\n';
 					if (hash_map[i][j][k].size() >= yres * xres / palette_size) {
-						std::cout << "Sampling (" << i << ", " << j << ", " << k << ")\n";
+						if (verbose) std::cout << "Sampling (" << i << ", " << j << ", " << k << ")\n";
 						sampled_buckets.push_back(hash_map[i][j][k]);
 					}
 					else for (auto& pixel : hash_map[i][j][k]) {
@@ -328,7 +330,7 @@ int main(int argc, char *argv[]) {
 	pixel_buckets.push_back(RGBpixels);
 	// Color quantization: Using median cut.
 	while (pixel_buckets.size() + sampled_buckets.size() < palette_size) {
-		std::cout << "Median cut progress: " << pixel_buckets.size() + sampled_buckets.size() << "/" << palette_size << '\n';
+		if (verbose) std::cout << "Median cut progress: " << pixel_buckets.size() + sampled_buckets.size() << "/" << palette_size << '\n';
 		UINT8 R_max = 0, R_min = UINT8_MAX, G_max = 0, G_min = UINT8_MAX, B_max = 0, B_min = UINT8_MAX;
 		for (auto& bucket : pixel_buckets) {
 			if (bucket.empty()) continue;
@@ -378,7 +380,7 @@ int main(int argc, char *argv[]) {
 			
 		}
 	}
-	std::cout << "Median cut was successful.\n";
+	if (verbose) std::cout << "Median cut was successful.\n";
 	for (auto& bucket : sampled_buckets) pixel_buckets.push_back(bucket);
 	// Compressed buffer.
 	std::vector<unsigned char> compressed(xres* yres* channels);
@@ -403,8 +405,8 @@ int main(int argc, char *argv[]) {
 		++bucket_id;
 	}
 
-	std::cout << "Found the color with the largest area. (" <<  biggest_bucket->size() << ")\n";
-	std::cout << "Sparsity: " << float(biggest_bucket->size()) / float(yres * xres) << '\n';
+	if (verbose) std::cout << "Found the color with the largest area. (" <<  biggest_bucket->size() << ")\n";
+	if (verbose) std::cout << "Sparsity: " << float(biggest_bucket->size()) / float(yres * xres) << '\n';
 	diagnostics << "Computation results: \n";
 	diagnostics << "- Sparsity: " << float(biggest_bucket->size()) / float(yres * xres) << '\n';
 	diagnostics << "- Header size: " << palette_size * palette_id_size << " bits.\n";
@@ -414,7 +416,7 @@ int main(int argc, char *argv[]) {
 	bucket_id = 0;
 	// Assign a color to each bucket using each bucket's average.
 	for (auto& bucket : pixel_buckets) {
-		std::cout << "Processing bucket " << std::dec << bucket_id << '\n';
+		if (verbose) std::cout << "Processing bucket " << std::dec << bucket_id << '\n';
 		unsigned int R_sum = 0, G_sum = 0, B_sum = 0;
 		for (const auto& pixel : bucket) {
 			R_sum += pixel.R;
@@ -424,10 +426,12 @@ int main(int argc, char *argv[]) {
 		UINT8 avg_R = (bucket.empty()) ? 0 : static_cast<UINT8>(R_sum / bucket.size());
 		UINT8 avg_G = (bucket.empty()) ? 0 : static_cast<UINT8>(G_sum / bucket.size());
 		UINT8 avg_B = (bucket.empty()) ? 0 : static_cast<UINT8>(B_sum / bucket.size());
-		std::cout << "The color for bucket " << std::dec << bucket_id;
-		std::cout << " is 0x" << std::hex << std::setfill('0') << std::setw(2) << int(avg_R);
-		std::cout << std::hex << std::setfill('0') << std::setw(2) << int(avg_G);
-		std::cout << std::hex << std::setfill('0') << std::setw(2) << int(avg_B) << '\n';
+		if (verbose) {
+			std::cout << "The color for bucket " << std::dec << bucket_id;
+			std::cout << " is 0x" << std::hex << std::setfill('0') << std::setw(2) << int(avg_R);
+			std::cout << std::hex << std::setfill('0') << std::setw(2) << int(avg_G);
+			std::cout << std::hex << std::setfill('0') << std::setw(2) << int(avg_B) << '\n';
+		}
 		diagnostics << "- - Color code for palette " << std::dec << bucket_id \
 			<< ": 0x" << std::hex << std::setfill('0') << std::setw(2) << int(avg_R) \
 			<< std::hex << std::setfill('0') << std::setw(2) << int(avg_G) \
@@ -473,7 +477,7 @@ int main(int argc, char *argv[]) {
 	}
 
 
-	std::cout << "Completed bit vectors of the dense COE.\n";
+	if(verbose) std::cout << "Completed bit vectors of the dense COE.\n";
 	diagnostics << "- Size of dense COE: " << std::dec << dense_coe.size() << " bits. (" << float(dense_coe.size()) / 1024.0 << " Kbits)\n";
 
 	
@@ -493,7 +497,7 @@ int id = 0;
 		}
 		++id;
 	}
-	std::cout << "Completed bit vectors of the sparse COE.\n";
+	if (verbose) std::cout << "Completed bit vectors of the sparse COE.\n";
 	diagnostics << "- Size of sparse COE: " << std::dec << sparse_coe.size() << " bits. (" << float(sparse_coe.size()) / 1024.0 << " Kbits)\n";
 	std::string compressed_image_name = "compressed_" + filename;
 	std::unique_ptr<ImageOutput> compressed_out = ImageOutput::create(compressed_image_name);
@@ -501,7 +505,7 @@ int id = 0;
 	compressed_out->open(compressed_image_name, spec_cmpr);
 	compressed_out->write_image(TypeDesc::UINT8, &compressed[0]);
 	compressed_out->close();
-	std::cout << "Created preview image of the compression with filename: " << compressed_image_name << '\n';
+	if (verbose) std::cout << "Created preview image of the compression with filename: " << compressed_image_name << '\n';
 	
 	std::ofstream dense_outfile("dense_" + filename_raw + ".coe");
 	std::ofstream sparse_outfile("sparse_" + filename_raw + ".coe");
@@ -531,7 +535,7 @@ int id = 0;
 		}
 	}
 	dense_outfile.close();
-	std::cout << "Created dense_" << filename_raw << ".coe\n";
+	if (verbose) std::cout << "Created dense_" << filename_raw << ".coe\n";
 
 	convert_buf.clear();
 	id = 0;
@@ -553,12 +557,13 @@ int id = 0;
 		}
 	}
 	sparse_outfile.close();
-	std::cout << "Created sparse_" << filename_raw << ".coe\n";
+	if (verbose) std::cout << "Created sparse_" << filename_raw << ".coe\n";
 
 	diagnostics.close();
-
-	std::cout << "Execution successful. Diagnostics saved as " << filename_raw << "_diagnostics.txt. Input any key to exit.\n";
-	std::cin >> cmd;
+	if (verbose) {
+		std::cout << "Execution successful. Diagnostics saved as " << filename_raw << "_diagnostics.txt. Input any key to exit.\n";
+		std::cin >> cmd;
+	}
 	
 	return 0;
 
