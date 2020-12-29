@@ -10,6 +10,7 @@
 #include <utility>
 #include <algorithm>
 #include <stack>
+#include <unordered_set>
 using namespace OIIO;
 
 struct RGBPixel;
@@ -44,6 +45,14 @@ struct RGBPixel {
 	}
 };
 
+struct LowPrecisionRGBEqual {
+	bool operator()(const RGBPixel& lhs, const RGBPixel& rhs) {
+		return ((lhs.R >> 2) == (rhs.R >> 2) \
+			&& (lhs.G >> 2) == (rhs.G >> 2) \
+			&& (lhs.B >> 2) == (rhs.B >> 2));
+	}
+};
+
 struct PaletteField {
 	UINT8 R, G, B;
 };
@@ -58,8 +67,9 @@ inline bool bit_select(integral_T from, int id) {
 }
 
 int main(int argc, char *argv[]) {
+	std::string cmd;
 	std::string filename;
-	if (argc > 2) {
+	if (argc > 7) {
 		std::cout << "Too many arguments!\n";
 		return -1;
 	}
@@ -74,7 +84,8 @@ int main(int argc, char *argv[]) {
 	
 	auto source = ImageInput::open(filename);
 	if (!source) {
-		std::cout << "Failed to open file " << filename << '\n';
+		std::cout << "Failed to open file " << filename << ". Enter any key to end\n";
+		std::cin >> cmd;
 		return -1;
 	}
 	std::cout << "Opened file " << filename << '\n';
@@ -85,8 +96,9 @@ int main(int argc, char *argv[]) {
 	int xres = spec.width;
 	int yres = spec.height;
 	int channels = spec.nchannels;
-	if (channels != 3) {
-		std::cout << filename << " is not an RGB file.\n";
+	if (channels != 3 && channels != 4) {
+		std::cout << filename << " is not an RGB/RGBA file. Enter any key to end\n";
+		std::cin >> cmd;
 		return -1;
 	}
 	std::cout << "Decoded image specs.\n";
@@ -116,7 +128,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	bool enable_blur;
-	std::string cmd;
 	if (argc <= 3) {
 		while (1) {
 			std::cout << "Apply Gaussian blur before quantization? (Y/n): ";
@@ -152,6 +163,25 @@ int main(int argc, char *argv[]) {
 	else sharpen = std::stoi(argv[4]);
 	diagnostics << "- Sharpen color: " << ((sharpen) ? "True\n" : "False\n");
 
+	bool sample;
+	if (argc <= 5) {
+		while (1) {
+			std::cout << "Arbitrary color sampling? (Y/n): ";
+			std::cin >> cmd;
+			if (cmd == "Y") {
+				sample = true;
+				break;
+			}
+			else if (cmd == "n") {
+				sample = false;
+				break;
+			}
+		}
+
+	}
+	else sample = std::stoi(argv[5]);
+	diagnostics << "- Arbitrary color sampling: " << ((sample) ? "True\n" : "False\n");
+
 	
 	std::array<float, 3> Gaussian{ 6.0, 4.0, 1.0 };
 	boost::multi_array<Color, 2>::extent_gen extent;
@@ -164,13 +194,13 @@ int main(int argc, char *argv[]) {
 	int row_n = 0, col_n = 0;
 	RGBPixel curPixel;
 	for (auto byte : pixels) {
-		if (byte_n % 3 == 0) {
+		if (byte_n % channels == 0) {
 			curPixel.R = byte;
 		}
-		else if (byte_n % 3 == 1) {
+		else if (byte_n % channels == 1) {
 			curPixel.G = byte;
 		}
-		else {
+		else if(byte_n % channels == 2){
 			curPixel.B = byte;
 			curPixel.row = row_n;
 			curPixel.col = col_n;
@@ -274,14 +304,35 @@ int main(int argc, char *argv[]) {
 	}
 
 	std::list<std::vector<RGBPixel>> pixel_buckets;
+	std::list<std::vector<RGBPixel>> sampled_buckets;
+	if (sample) {
+		// Dump all pixels into a multiset identified by their colors
+		boost::multi_array<std::vector<RGBPixel>, 3> hash_map(extent[64][64][64]);
+		for (auto& pixel : RGBpixels) hash_map[pixel.R / 4][pixel.G / 4][pixel.B / 4].push_back(pixel);
+		RGBpixels.clear();
+		for(int i = 0; i < 64; i++)
+			for(int j = 0; j < 64; j++)
+				for (int k = 0; k < 64; k++) {
+					if (hash_map[i][j][k].size()) std::cout << "(" << i << ", " << j << ", " << k << ") has size " << hash_map[i][j][k].size() << '\n';
+					if (hash_map[i][j][k].size() >= yres * xres / palette_size) {
+						std::cout << "Sampling (" << i << ", " << j << ", " << k << ")\n";
+						sampled_buckets.push_back(hash_map[i][j][k]);
+					}
+					else for (auto& pixel : hash_map[i][j][k]) {
+						RGBpixels.push_back(pixel);
+					}
+				}
+
+	}
+
 	pixel_buckets.push_back(RGBpixels);
 	// Color quantization: Using median cut.
-	while (pixel_buckets.size() < palette_size) {
-		std::cout << "Median cut progress: " << pixel_buckets.size() << "/" << palette_size << '\n';
+	while (pixel_buckets.size() + sampled_buckets.size() < palette_size) {
+		std::cout << "Median cut progress: " << pixel_buckets.size() + sampled_buckets.size() << "/" << palette_size << '\n';
 		UINT8 R_max = 0, R_min = UINT8_MAX, G_max = 0, G_min = UINT8_MAX, B_max = 0, B_min = UINT8_MAX;
 		for (auto& bucket : pixel_buckets) {
 			if (bucket.empty()) continue;
-			if(pixel_buckets.size() >= palette_size) break; 
+			if(pixel_buckets.size() + sampled_buckets.size() >= palette_size) break;
 			for (auto& pixel : bucket) {
 				R_max = std::max(pixel.R, R_max);
 				R_min = std::min(pixel.R, R_min);
@@ -324,25 +375,21 @@ int main(int argc, char *argv[]) {
 				pixel_buckets.front().push_back(bucket.back());
 				bucket.pop_back();
 			}
-			while (!bucket.empty() && bucket.back() - pivot < 24) {
-				pivot = bucket.back();
-				pixel_buckets.front().push_back(bucket.back());
-				bucket.pop_back();
-			}
 			
 		}
 	}
 	std::cout << "Median cut was successful.\n";
+	for (auto& bucket : sampled_buckets) pixel_buckets.push_back(bucket);
 	// Compressed buffer.
 	std::vector<unsigned char> compressed(xres* yres* channels);
 
 	// COE of dense representation
-	std::vector<bool> dense_coe(palette_size * channels * 4);
+	std::vector<bool> dense_coe(palette_size * 3 * 4);
 	int palette_id_size = static_cast<int>(std::log2(palette_size));
 	int x_axis_size = static_cast<int>(std::log2(xres));
 	int y_axis_size = static_cast<int>(std::log2(yres));
 	int sparse_tuple_size = y_axis_size + x_axis_size + palette_id_size;
-	std::vector<bool> sparse_coe(palette_size * channels * 4);
+	std::vector<bool> sparse_coe(palette_size * 3 * 4);
 
 	// Header
 
@@ -390,17 +437,18 @@ int main(int argc, char *argv[]) {
 		// Write palette field.
 
 		for (int j = 7; j >= 4; --j) { 
-			dense_coe[bucket_id * channels] = bit_select(avg_R, j);
-			sparse_coe[bucket_id * channels] = bit_select(avg_R, j);
+			dense_coe[bucket_id * 3 * 4 + 7 - j] = bit_select(avg_R, j);
+			sparse_coe[bucket_id * 3 * 4 + 7 - j] = bit_select(avg_R, j);
 		}
 		for (int j = 7; j >= 4; --j) {
-			dense_coe[bucket_id * channels + 1] = bit_select(avg_G, j);
-			sparse_coe[bucket_id * channels + 1] = bit_select(avg_G, j);
+			dense_coe[bucket_id * 3 * 4 + 4 + 7 - j] = bit_select(avg_G, j);
+			sparse_coe[bucket_id * 3 * 4 + 4 + 7 - j] = bit_select(avg_G, j);
 		}
 		for (int j = 7; j >= 4; --j) {
-			dense_coe[bucket_id * channels + 2] = bit_select(avg_B, j);
-			sparse_coe[bucket_id * channels + 2] = bit_select(avg_B, j);
+			dense_coe[bucket_id * 3 * 4 + 8 + 7 - j] = bit_select(avg_B, j);
+			sparse_coe[bucket_id * 3 * 4 + 8 + 7 - j] = bit_select(avg_B, j);
 		}
+
 		for (auto& pixel : bucket) {
 			pixel.R = avg_R;
 			pixel.G = avg_G;
@@ -408,35 +456,40 @@ int main(int argc, char *argv[]) {
 			compressed[pixel.row * (xres * channels) + pixel.col * channels] = pixel.R;
 			compressed[pixel.row * (xres * channels) + pixel.col * channels + 1] = pixel.G;
 			compressed[pixel.row * (xres * channels) + pixel.col * channels + 2] = pixel.B;
-			if (bucket_id != 0) p_pixels.push_back(PalettePixel{ pixel.row, pixel.col, bucket_id });
-			// Fill the palette id.
-			for (int i = palette_id_size - 1; i >= 0; --i) {
-				dense_coe.push_back(bit_select(bucket_id, i));
-			}
+			if (channels == 4) compressed[pixel.row * (xres * channels) + pixel.col * channels + 3] = 255;
+			p_pixels.push_back(PalettePixel{ pixel.row, pixel.col, bucket_id });
 		}
 		++bucket_id;	
 	}
-	std::cout << "Completed bit vectors of the dense COE.\n";
-	diagnostics << "- Size of dense COE: " << std::dec << dense_coe.size() << " bits. (" << float(dense_coe.size()) / 1024.0 << " Kbits)\n";
-
 	p_pixels.sort([](const PalettePixel& lhs, const PalettePixel& rhs) {
 		if (lhs.row == rhs.row) return lhs.col < rhs.col;
 		else return lhs.row < rhs.row;
 	});
-	
-
-	sparse_coe.resize(palette_size * channels * 4 + p_pixels.size() * (y_axis_size + x_axis_size + palette_id_size));
-	int id = 0;
 	for (auto& pixel : p_pixels) {
+		// Fill the palette id.
+		for (int i = palette_id_size - 1; i >= 0; --i) {
+			dense_coe.push_back(bit_select(pixel.pid, i));
+		}
+	}
+
+
+	std::cout << "Completed bit vectors of the dense COE.\n";
+	diagnostics << "- Size of dense COE: " << std::dec << dense_coe.size() << " bits. (" << float(dense_coe.size()) / 1024.0 << " Kbits)\n";
+
+	
+	
+int id = 0;
+	for (auto& pixel : p_pixels) {
+		if (pixel.pid == 0) continue;
 		for (int i = 0; i < y_axis_size; ++i) {
-			sparse_coe[palette_size * channels * 4 + id * sparse_tuple_size + i] = bit_select(pixel.col, y_axis_size - i - 1);
+			sparse_coe.push_back(bit_select(pixel.col, y_axis_size - i - 1));
 
 		}
 		for (int i = 0; i < x_axis_size; ++i) {
-			sparse_coe[palette_size * channels * 4 + id * sparse_tuple_size + y_axis_size + i] = bit_select(pixel.col, x_axis_size - i - 1);
+			sparse_coe.push_back(bit_select(pixel.col, x_axis_size - i - 1));
 		}
 		for (int i = 0; i < palette_id_size; ++i) {
-			sparse_coe[palette_size * channels * 4 + id * sparse_tuple_size + y_axis_size + x_axis_size + i] = bit_select(pixel.pid, palette_id_size - i - 1);
+			sparse_coe.push_back(bit_select(pixel.pid, palette_id_size - i - 1));
 		}
 		++id;
 	}
@@ -461,7 +514,7 @@ int main(int argc, char *argv[]) {
 	std::stringstream convert_stream;
 	std::string convert_buf;
 	for (auto bit : dense_coe) {
-		hex_digit += bit << (id % 8);
+		hex_digit += bit << (7 - (id % 8));
 		if (id % 8 == 7) {
 			if (id > 7)  dense_outfile << ",\n";
 			dense_outfile << std::hex << std::setfill('0') << std::setw(2) << int(hex_digit);
@@ -470,14 +523,20 @@ int main(int argc, char *argv[]) {
 		}
 		++id;
 	}
-	if (id == dense_coe.size()) dense_outfile << ",\n";
-	dense_outfile << std::hex << std::setfill('0') << std::setw(2) << int(hex_digit) << ";\n";
+	if (id == dense_coe.size()) { 
+		if (id % 8 == 0) dense_outfile << ";\n";
+		else {
+			dense_outfile << ",\n";
+			dense_outfile << std::hex << std::setfill('0') << std::setw(2) << int(hex_digit) << ";\n";
+		}
+	}
 	dense_outfile.close();
 	std::cout << "Created dense_" << filename_raw << ".coe\n";
 
 	convert_buf.clear();
+	id = 0;
 	for (auto bit : sparse_coe) {
-		hex_digit += bit << (id % 8);
+		hex_digit += bit << (7 - (id % 8));
 		if (id % 8 == 7) {
 			if (id > 7)  sparse_outfile << ",\n";
 			sparse_outfile << std::hex << std::setfill('0') << std::setw(2) << int(hex_digit);
@@ -486,8 +545,13 @@ int main(int argc, char *argv[]) {
 		}
 		++id;
 	}
-	if (id == sparse_coe.size()) sparse_outfile << ",\n";
-	sparse_outfile << std::hex << std::setfill('0') << std::setw(2) << int(hex_digit) << ";\n";
+	if (id == sparse_coe.size()) { 
+		if (id % 8 == 0) sparse_outfile << ";\n";
+		else {
+			sparse_outfile << ",\n";
+			sparse_outfile << std::hex << std::setfill('0') << std::setw(2) << int(hex_digit) << ";\n";
+		}
+	}
 	sparse_outfile.close();
 	std::cout << "Created sparse_" << filename_raw << ".coe\n";
 
