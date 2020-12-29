@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
 	source->close();
 
 
-	std::ofstream diagnostics(filename_raw + "_diagnostics.txt");
+	std::ofstream diagnostics("diagnostics/" + filename_raw + "_diagnostics.txt");
 	diagnostics << "Source image: " << filename << '\n';
 	diagnostics << "- Height (vertical resolution): " << yres << '\n';
 	diagnostics << "- Width (horizontal resolution): " << xres << '\n';
@@ -499,7 +499,7 @@ int id = 0;
 	}
 	if (verbose) std::cout << "Completed bit vectors of the sparse COE.\n";
 	diagnostics << "- Size of sparse COE: " << std::dec << sparse_coe.size() << " bits. (" << float(sparse_coe.size()) / 1024.0 << " Kbits)\n";
-	std::string compressed_image_name = "compressed_" + filename;
+	std::string compressed_image_name = "preview/compressed_" + filename;
 	std::unique_ptr<ImageOutput> compressed_out = ImageOutput::create(compressed_image_name);
 	ImageSpec spec_cmpr(xres, yres, channels, TypeDesc::UINT8);
 	compressed_out->open(compressed_image_name, spec_cmpr);
@@ -507,8 +507,8 @@ int id = 0;
 	compressed_out->close();
 	if (verbose) std::cout << "Created preview image of the compression with filename: " << compressed_image_name << '\n';
 	
-	std::ofstream dense_outfile("dense_" + filename_raw + ".coe");
-	std::ofstream sparse_outfile("sparse_" + filename_raw + ".coe");
+	std::ofstream dense_outfile("coe_dump/dense_" + filename_raw + ".coe");
+	std::ofstream sparse_outfile("coe_dump/sparse_" + filename_raw + ".coe");
 	std::string header_radix = "memory_initialization_radix=16;\n";
 	std::string header_vector = "memory_initialization_vector=\n";
 	dense_outfile << header_radix << header_vector;
