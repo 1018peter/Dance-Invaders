@@ -554,9 +554,9 @@ int id = 0;
 		std::string sparse_include_guard = "`ifndef " + include_def + '\n';
 		std::string guard_end = "`endif\n";
 		dense_outfile << dense_include_guard << "`define " << include_def \
-			<< "parameter [" << palette_id_size - 1 << ":0] " << filename_raw << " [0:" << yres - 1 << "][0:" << xres - 1 << "] " << " = ";
+			<< "parameter [" << palette_id_size - 1 << ":0] " << boost::to_upper_copy(filename_raw) << " [0:" << yres - 1 << "][0:" << xres - 1 << "] " << " = ";
 		sparse_outfile << sparse_include_guard << "`define " << include_def \
-			<< "parameter [" << y_axis_size + x_axis_size + palette_id_size - 1 << ":0] " << filename_raw << " [0:" << sparse_coe.size() / (y_axis_size + x_axis_size + palette_id_size) - 1 << "] " << " = ";
+			<< "parameter [" << y_axis_size + x_axis_size + palette_id_size - 1 << ":0] " << boost::to_upper_copy(filename_raw) << " [0:" << sparse_coe.size() / (y_axis_size + x_axis_size + palette_id_size) - 1 << "] " << " = ";
 
 		dense_outfile << "{";
 		for (int y = 0; y < yres; ++y) {
