@@ -22,7 +22,8 @@
 `include "constants.svh"
 
 module event_core(
-    input clk, // Base frequency of around 30 Hz, and up to 60 Hz. Note: Any clock switching may cause frame glitches and should be handled with care.
+    input clk_frame, // Base frequency of around 30 Hz, and up to 60 Hz. Note: Any clock switching may cause frame glitches and should be handled with care.
+    input clk_sort, // Operating frequency of the sorter
     input rst,
     input en,
     input spawn_laser, // Onepulse signal that represents a request to spawn a laser.
@@ -43,15 +44,22 @@ module event_core(
     logic [SCORE_SIZE - 1:0] next_score;
     assign score_out = score;
     Alien obj_arr [0:OBJ_LIMIT-1];
+    Alien obj_arr_sorted [0:OBJ_LIMIT-1];
+    odd_even_merge_sorter(
+        .clk(clk_sort),
+        .unsorted(obj_arr),
+        .sorted(obj_arr_sorted)
+    );
+    
     logic [15:0] frame_ctr; // Useful for cyclic behavior. "Every X frame, enter a different state"
     wire [15:0]  frame_onepulse; // Onepulse of select frames. "Every X frame, do something for 1 frame"
     generate 
     for(genvar g = 0; g < 16; g++)
-        onepulse(frame_ctr[g], clk, frame_onepulse[g]);
+        onepulse(frame_ctr[g], clk_frame, frame_onepulse[g]);
     endgenerate
     
     wire spawn_object_op;
-    onepulse(spawn_object, clk, spawn_object_op);
+    onepulse(spawn_object, clk_frame, spawn_object_op);
     
     always @*begin
         all_clear = 1;
@@ -62,7 +70,7 @@ module event_core(
         end
     end
 
-    always @(posedge clk, posedge rst) begin
+    always @(posedge clk_frame, posedge rst) begin
         if(rst) begin
             frame_ctr <= 0;
         end
@@ -71,22 +79,54 @@ module event_core(
         end
     end
     
-    // Collapse the frame into the format of { {AlienData}}
+    wire [9:0] projected_x [0:OBJ_LIMIT-1];
+    wire [8:0] mapped_theta [0:OBJ_LIMIT-1];
+    // Collapse the frame into the format of { {Alien Data (Sorted by distance, headed by the closest alien}, {Laser Metadata}}
 	assign frame_data[0] = laser._active;
 	assign frame_data[4:1] = laser._r;
 	assign frame_data[13:5] = laser._deg;
 	generate
 	for(genvar k = 0; k < OBJ_LIMIT; k++) begin
-        assign frame_data[14 + k * $size(AlienData)] = obj_arr[k]._state != INACTIVE;
-        assign frame_data[14 + k * $size(AlienData)+2:14 + k * $size(AlienData)+1] = obj_arr[k]._type;
-        assign frame_data[14 + k * $size(AlienData)+4:14 + k * $size(AlienData)+3] = obj_arr[k]._frame_num;
-        assign frame_data[14 + k * $size(AlienData)+8:14 + k * $size(AlienData)+5] = obj_arr[k]._r;
-        assign frame_data[14 + k * $size(AlienData)+17:14 + k * $size(AlienData)+9] = obj_arr[k]._theta;
-
+	    localparam startpos = 14 + k * $size(AlienData);
+        assign frame_data[startpos] = obj_arr_sorted[k]._state != INACTIVE;
+        assign frame_data[startpos+2 :startpos+1] = obj_arr_sorted[k]._type;
+        assign frame_data[startpos+4 :startpos+3] = obj_arr_sorted[k]._frame_num;
+        assign frame_data[startpos+8 :startpos+5] = obj_arr_sorted[k]._r;
+        assign frame_data[startpos+10:startpos+9] = obj_arr_sorted[k]._theta / 90; // (0~359)/90 -> (0~3).
+        
+        assign mapped_theta[k] = obj_arr_sorted[k]._theta % 90;
+        assign projected_x[k] = 320 + (mapped_theta[k] < 45 ? 
+        -sin[45 - mapped_theta[k]] 
+        : sin[mapped_theta[k] - 45]) / 10000 * (640 + obj_arr_sorted[k]._r * 10);
+        
+        // x pos
+        assign frame_data[startpos+20:startpos+11] = projected_x[k]; // (0~640. Validation is done in the peripheral) 
+        // y pos
+        assign frame_data[startpos+30:startpos+21] = 80 + obj_arr_sorted[k]._r * 15;
+        
+        // deriv left
+        assign frame_data[startpos+32:startpos+31] = 
+        mapped_theta[k] < 33 ? 3
+        : mapped_theta[k] < 37 ? 2
+        : mapped_theta[k] < 40 ? 1
+        : mapped_theta[k] < 50 ? 0
+        : mapped_theta[k] < 55 ? 1
+        : 2 ;
+        
+        // deriv right
+        assign frame_data[startpos+34:startpos+33] = 
+        mapped_theta[k] > 57 ? 3
+        : mapped_theta[k] > 53 ? 2
+        : mapped_theta[k] > 50 ? 1
+        : mapped_theta[k] > 40 ? 0
+        : mapped_theta[k] > 35 ? 1
+        : 2 ;
+        
+        
     end
 	endgenerate
 	
-    always @(posedge clk, posedge rst) begin
+    always @(posedge clk_frame, posedge rst) begin
         if(rst) begin
             object_count <= 0;
             for(int i = 0; i < OBJ_LIMIT; i++) begin
@@ -109,6 +149,8 @@ module event_core(
                         obj_arr[i]._r <= obj_arr[i]._r - 1;
                         
                     end
+                    
+                    if(frame_onepulse[4]) obj_arr[i]._frame_num[0] <= obj_arr[i]._frame_num[0] ^ 1;
                     
                     case(obj_arr[i]._type)
                     TYPE0: begin // Type 0: Basic alien. Circles in a simple pattern.
@@ -161,25 +203,11 @@ module event_core(
                     
                     
                 end
-                DYING: begin // TODO: Four-frame death animation. Here specifies the end frame of each animation set.
-                    if (frame_onepulse[2]) case(obj_arr[i]._type)
-                    TYPE0: begin
+                DYING: begin // death animation
+                    if (frame_onepulse[2]) 
                         if(obj_arr[i]._frame_num == 3) obj_arr[i]._state <= INACTIVE;
                         else obj_arr[i]._frame_num <= obj_arr[i]._frame_num + 1;
-                    end
-                    TYPE1: begin
-                        if(obj_arr[i]._frame_num == 7) obj_arr[i]._state <= INACTIVE;
-                        else obj_arr[i]._frame_num <= obj_arr[i]._frame_num + 1;
-                    end
-                    TYPE2: begin
-                        if(obj_arr[i]._frame_num == 11) obj_arr[i]._state <= INACTIVE;
-                        else obj_arr[i]._frame_num <= obj_arr[i]._frame_num + 1;
-                    end
-                    TYPE3: begin
-                        if(obj_arr[i]._frame_num == 15) obj_arr[i]._state <= INACTIVE;
-                        else obj_arr[i]._frame_num <= obj_arr[i]._frame_num + 1;
-                    end
-                    endcase
+                    
                 end
                 endcase
             end
@@ -192,7 +220,7 @@ module event_core(
                     && obj_arr[i]._theta >= laser._deg - LSR_WIDTH) begin 
                         if(obj_arr[i]._hp == 1) begin
                             obj_arr[i]._state <= DYING;
-                            obj_arr[i]._frame_num <= obj_arr[i]._frame_num + 1; // Advance to death animation frames.
+                            obj_arr[i]._frame_num <= 2; // Advance to death animation frames.
                             object_count <= object_count - 1;
                         end
                         obj_arr[i]._hp <= obj_arr[i]._hp - 1;
@@ -249,4 +277,67 @@ module event_core(
         end
     end
     
+endmodule
+
+// Sorter that sorts by distance.
+module odd_even_merge_sorter(
+    input clk,
+    input Alien unordered [0: OBJ_LIMIT-1],
+    output Alien ordered[0: OBJ_LIMIT-1]
+);
+
+    logic [4:0] sort_layer [0:5][0:OBJ_LIMIT-1];
+    
+    always @* begin
+        for(int i = 0; i < OBJ_LIMIT; i++) begin
+            sort_layer[0][i] = i;
+            ordered[i] = unordered[sort_layer[5][i]];
+        end
+    end
+    
+    always @(posedge clk) begin
+        for(int i = 0; i < OBJ_LIMIT; i++) begin
+            ordered[i] <= unordered[sort_layer[5][i]];
+        end
+    end
+    
+    generate
+    for(genvar p = 1; p < OBJ_LIMIT; p = p << 1) begin
+        for(genvar k = p; k >= 1; k = k >> 1) begin
+            for(genvar j = k % p; j < OBJ_LIMIT-k; j = j + 2 * k) begin
+                for(genvar i = 0; i < k; i++) begin
+                    if( (i+j) / (2 * p) == (i + j + k) / (2 * p) ) begin
+                        alien_comparator(unordered, sort_layer[$clog2(p)][i+j], sort_layer[$clog2(p)][i+j+k], 
+                        sort_layer[$clog2(p) + 1][i+j], sort_layer[$clog2(p) + 1][i+j+k]);
+                    end
+                    else begin
+                        assign sort_layer[$clog2(p) + 1][i+j]   = sort_layer[$clog2(p)][i+j];
+                        assign sort_layer[$clog2(p) + 1][i+j+k] = sort_layer[$clog2(p)][i+j+k];
+                    end
+                end
+            end
+        end
+    end
+    endgenerate 
+
+endmodule
+
+module alien_comparator(
+    input Alien key_ref [0: OBJ_LIMIT-1],
+    input [4:0] in_0,
+    input [4:0] in_1,
+    output logic [4:0] out_0,
+    output logic [4:0] out_1
+);
+    always @* begin
+        if(key_ref[in_0]._r < key_ref[in_1]._r) begin
+            out_0 = in_0;
+            out_1 = in_1;
+        end
+        else begin
+            out_0 = in_1;
+            out_1 = in_0;
+        end
+    end
+
 endmodule

@@ -21,12 +21,11 @@
 `include "typedefs.svh"
 `include "constants.svh"
 
-// BUG: Object spawning is not functioning properly.
-
 module control_core(
     input clk, // 100MHz
     input rst, // btnC
     input RxD,
+    output [MESSAGE_SIZE - 1:0] datagram,
     output [15:0] led,
     output [3:0] DIGIT,
     output [6:0] DISPLAY
@@ -135,7 +134,7 @@ module control_core(
     wire [OBJ_LIMIT * $size(AlienData) + $size(Laser) - 1: 0] frame_data;
     wire [3:0] object_count;
     event_core(
-    .clk(clk_frame),
+    .clk_frame(clk_frame),
     .rst(rst || wire_game_start),
     .en(cur_state == SCENE_INGAME),
     .spawn_laser(|event_onepulse[BUTTON_RIGHT:BUTTON_UP]),
@@ -180,7 +179,7 @@ module control_core(
         default: output_message[STATE_SIZE - 1:0] = {cur_state};
         endcase
     end
-    
+    assign datagram = output_message;
     
     
     always @(posedge clk, posedge rst) begin
