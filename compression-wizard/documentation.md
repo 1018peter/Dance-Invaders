@@ -9,13 +9,14 @@ whether to use Gaussian Blur, and whether to sharpen the color (which is equival
  
  The program also accepts command-line arguments, as follows:
  - Arg 1: A string, containing the filename.
- - Arg 2: The size of the palette. Should be a power of 2 greater than 1.
- - Arg 3: An integer flag. 0 means not using Gaussian Blur.
- - Arg 4: An integer flag. 0 means not sharpening the color.
- - Arg 5: An integer flag. 0 means not looking for preexisting color chunks to initialize palettes with. A color chunk will only be used for initialization
+ - Arg 2: Compression mode. 0: Output both dense and sparse format. 1: Dense-only. 2: Sparse-only.
+ - Arg 3: The size of the palette. Should be a power of 2 greater than 1.
+ - Arg 4: An integer flag. 0 means not using Gaussian Blur.
+ - Arg 5: An integer flag. 0 means not sharpening the color.
+ - Arg 6: An integer flag. 0 means not looking for preexisting color chunks to initialize palettes with. A color chunk will only be used for initialization
  if it is at least as large as a palette should be on average.
- - Arg 6: An integer flag. 0 means not including the palette header in the output.
- - Arg 7: An integer flag. 0 means output as .coe, and 1 means output as .svh.
+ - Arg 7: An integer flag. 0 means not including the palette header in the output.
+ - Arg 8: An integer flag. 0 means output as .coe, and 1 means output as .svh.
  
  If every command-line argument field is filled, verbosity will be disabled, and the program will not output any notification messages nor initiate any user queries.
  
