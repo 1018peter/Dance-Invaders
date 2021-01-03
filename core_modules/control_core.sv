@@ -30,6 +30,11 @@ module control_core(
     output [3:0] DIGIT,
     output [6:0] DISPLAY
     );
+    wire clk_main; // Operating frequency.
+    clock_divider_two_power(
+    .clk(clk),
+    .clk_div(clk_main)
+    );
     wire clk_frame;
     wire clk_spawn;
     wire [1:0] clock_select;
@@ -53,7 +58,7 @@ module control_core(
     .RxData(event_packet)
     );
     
-    always @(posedge clk, posedge rst) begin
+    always @(posedge clk_main, posedge rst) begin
         if(rst) event_buffer <= 0;
         else if(packet_valid) event_buffer <= event_packet;
     end
@@ -62,7 +67,7 @@ module control_core(
     generate
     for(k = 0; k < 8; k++) begin
         onepulse(event_buffer[k], clk_frame, event_onepulse[k]);
-        onepulse(event_buffer[k], clk, event_state_onepulse[k]);
+        onepulse(event_buffer[k], clk_main, event_state_onepulse[k]);
     end
     endgenerate
     
@@ -157,7 +162,7 @@ module control_core(
     wire [SCOREBOARD_DATA_SIZE - 1:0] scoreboard_data; // Display up to 6 name/score pairs.
     wire scoreboard_done;
     scoreboard_fsm(
-    .clk(clk), 
+    .clk(clk_main), 
     .rst(rst),
     .en(cur_state == SCENE_SCOREBOARD),
     .event_onepulse(event_state_onepulse), // Needed to operate the virtual keyboard.
@@ -182,7 +187,7 @@ module control_core(
     assign datagram = output_message;
     
     
-    always @(posedge clk, posedge rst) begin
+    always @(posedge clk_main, posedge rst) begin
         if(rst) begin
             cur_state <= SCENE_INITIAL;
             cur_level <= 0;
@@ -417,3 +422,21 @@ module scoreboard_fsm(
     end
 
 endmodule
+
+module clock_divider_two_power(clk, clk_div);   
+    parameter n = 8;     
+    input clk;   
+    output clk_div;   
+    
+    reg [n-1:0] num;
+    wire [n-1:0] next_num;
+    
+    always@(posedge clk)begin
+    	num<=next_num;
+    end
+    
+    assign next_num = num +1;
+    assign clk_div = num[n-1];
+    
+endmodule
+

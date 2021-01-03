@@ -20,6 +20,9 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
+`include "constants.svh"
+`include "typedefs.svh"
+
 module alien_renderer(
     input [9:0] h_cnt,
     input [9:0] v_cnt,

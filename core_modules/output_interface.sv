@@ -133,7 +133,7 @@ module output_interface(
       .v_cnt(v_cnt)
     );
 	
-	wire pixel_bg;
+	wire [11:0] pixel_bg;
 	layer_background(
 	.clk(clk_25MHz),
 	.h_cnt(h_cnt),
@@ -153,7 +153,7 @@ module output_interface(
             .obj_data(obj_data[g]),
             .pixel_addr(pixel_addr[g]),
             .deriv_select(deriv_select[g]),
-            .valid(pixel_valid)
+            .valid(pixel_valid[g])
             );
 	endgenerate
 	
@@ -171,6 +171,7 @@ module output_interface(
 	   deriv = 0;
 	   alien_type = 0;
 	   frame_num = 0;
+	   distance = 0;
 	   // Priority encoding to render the closest alien on the current pixel.
 	   for(int i = 0;i < OBJ_LIMIT; ++i) begin
 	       if(obj_data[i]._active && obj_data[i]._quadrant == QUADRANT && pixel_valid[i]) begin
@@ -197,6 +198,7 @@ module output_interface(
 	
 	logic [11:0] obj_pixel_out;
 	always @* begin
+	   obj_pixel_out = 0;
         if(palette_out) begin
             case(alien_type)
             0: obj_pixel_out = { 4'h4 - (distance >> 4), 4'h4 - (distance >> 4), 4'hF - (distance >> 1) };

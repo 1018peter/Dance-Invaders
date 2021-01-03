@@ -27,7 +27,14 @@ module mother_board(
     input RxD,
     output [15:0] led,
     output [3:0] DIGIT,
-    output [6:0] DISPLAY
+    output [6:0] DISPLAY,
+    
+    output [3:0] vgaRed,
+    output [3:0] vgaGreen,
+    output [3:0] vgaBlue,
+    output hsync,
+    output vsync
+    
     );
     
     wire [MESSAGE_SIZE-1:0] datagram;
@@ -40,4 +47,17 @@ module mother_board(
     .DIGIT(DIGIT),
     .DISPLAY(DISPLAY)
     );
+    
+    output_interface(
+    .clk(clk),
+    .rst(rst),
+    .datagram(datagram),
+    .vgaRed(vgaRed),
+    .vgaGreen(vgaGreen),
+    .vgaBlue(vgaBlue),
+    .hsync(hsync),
+    .vsync(vsync)
+    );
+    
+    
 endmodule
