@@ -188,6 +188,7 @@ module output_interface(
 	
 	wire palette_out;
 	alien_pixel_reader(
+	.clk(clk_25MHz),
 	.frame_num(frame_num),
 	.alien_type(alien_type),
 	.size_select(distance),
