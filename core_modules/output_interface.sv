@@ -90,11 +90,11 @@ module output_interface(
     wire [FRAME_DATA_SIZE - 1:0] frame_data = ingame_data[SCORE_SIZE + LEVEL_SIZE + FRAME_DATA_SIZE - 1: SCORE_SIZE + LEVEL_SIZE];
     wire laser_active = frame_data[0];
     wire laser_r = frame_data[4:1];
-    wire laser_deg = frame_data[13:5];
+    wire laser_quadrant = frame_data[6:5];
     AlienData obj_data[0:OBJ_LIMIT-1];
     generate
 	for(genvar k = 0; k < OBJ_LIMIT; k++) begin
-	    localparam startpos = 14 + k * $size(AlienData);
+	    localparam startpos = 7 + k * $size(AlienData);
         assign obj_data[k]._active = frame_data[startpos];
         assign obj_data[k]._type = frame_data[startpos+2:startpos+1];
         assign obj_data[k]._frame_num = frame_data[startpos+4:startpos+3];
@@ -166,7 +166,6 @@ module output_interface(
 	logic obj_layer_valid;
 	always @* begin
 	   pixel_addr_obj = 0;
-	   obj_layer_valid = 0;
 	   palette_color = 0;
 	   deriv = 0;
 	   alien_type = 0;
@@ -175,7 +174,6 @@ module output_interface(
 	   // Priority encoding to render the closest alien on the current pixel.
 	   for(int i = 0;i < OBJ_LIMIT; ++i) begin
 	       if(obj_data[i]._active && obj_data[i]._quadrant == QUADRANT && pixel_valid[i]) begin
-	           obj_layer_valid = 1;
 	           pixel_addr_obj = pixel_addr[i];
 	           distance = obj_data[i]._r;
 	           deriv = deriv_select[i];
@@ -200,7 +198,9 @@ module output_interface(
 	logic [11:0] obj_pixel_out;
 	always @* begin
 	   obj_pixel_out = 0;
+	   obj_layer_valid = 0;
         if(palette_out) begin
+            obj_layer_valid = 1;
             case(alien_type)
             0: obj_pixel_out = { 4'h4 - (distance >> 4), 4'h4 - (distance >> 4), 4'hF - (distance >> 1) };
             1: obj_pixel_out = { 4'h4 - (distance >> 4), 4'hF - (distance >> 1), 4'h4 - (distance >> 4) };
@@ -210,10 +210,22 @@ module output_interface(
         end
 	end
 	
+	logic laser_layer_valid;
+	wire [9:0] laser_end_y = 480 - 80 - laser_r * 15;
+	always @* begin
+	   laser_layer_valid = 0;
+	   if(laser_quadrant == QUADRANT && laser_active && ((v_cnt >= laser_end_y
+	   && h_cnt <= laser_end_y + 20 && h_cnt >= laser_end_y - 20) ||
+	   h_cnt <= 20 || h_cnt >= VGA_XRES - 20 || v_cnt >= VGA_YRES - 20 || v_cnt <= 20)) begin
+	       // Set union of the laser itself and a square frame around the screen.
+	       laser_layer_valid = 1;
+	   end
+	end
+	
 	logic [11:0] rendered_pixel;
 	assign {vgaRed, vgaGreen, vgaBlue} = rendered_pixel;
     always @* begin
-        rendered_pixel = 0;
+        rendered_pixel = pixel_bg;
         case(core_state)
         SCENE_GAME_START: begin
         
@@ -222,7 +234,10 @@ module output_interface(
         
         end
         SCENE_INGAME: begin
-            if(obj_layer_valid) begin
+            if(laser_layer_valid) begin
+                rendered_pixel = 12'h4_8_F; // Laser color.
+            end
+            else if(obj_layer_valid) begin
                 rendered_pixel = obj_pixel_out;
             end
         end

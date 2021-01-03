@@ -34,7 +34,7 @@ module event_core(
     output logic all_clear, // Signal to indicate that no aliens are active.
     output game_over,
     output logic [3:0] object_count,
-	output [OBJ_LIMIT * $size(AlienData) + $size(Laser) - 1: 0] frame_data // The parallel bit output that contains all the information of a frame, waiting to be serialized.
+	output [FRAME_DATA_SIZE - 1: 0] frame_data // The parallel bit output that contains all the information of a frame, waiting to be serialized.
     );
     logic flag_game_over;
     assign game_over = flag_game_over;
@@ -84,10 +84,10 @@ module event_core(
     // Collapse the frame into the format of { {Alien Data (Sorted by distance, headed by the closest alien}, {Laser Metadata}}
 	assign frame_data[0] = laser._active;
 	assign frame_data[4:1] = laser._r;
-	assign frame_data[13:5] = laser._deg;
+	assign frame_data[6:5] = laser._deg / 90; // Quadrant
 	generate
 	for(genvar k = 0; k < OBJ_LIMIT; k++) begin
-	    localparam startpos = 14 + k * $size(AlienData);
+	    localparam startpos = 7 + k * $size(AlienData);
         assign frame_data[startpos] = obj_arr_sorted[k]._state != INACTIVE;
         assign frame_data[startpos+2 :startpos+1] = obj_arr_sorted[k]._type;
         assign frame_data[startpos+4 :startpos+3] = obj_arr_sorted[k]._frame_num;
@@ -102,7 +102,7 @@ module event_core(
         // x pos
         assign frame_data[startpos+20:startpos+11] = projected_x[k]; // (0~640. Validation is done in the peripheral) 
         // y pos
-        assign frame_data[startpos+30:startpos+21] = 80 + obj_arr_sorted[k]._r * 15;
+        assign frame_data[startpos+30:startpos+21] = 480 - 80 - obj_arr_sorted[k]._r * 15;
         
         // deriv left
         assign frame_data[startpos+32:startpos+31] = 
