@@ -136,7 +136,7 @@ module control_core(
     
     wire [15:0] wire_score;
     wire signal_clear;
-    wire [OBJ_LIMIT * $size(AlienData) + $size(Laser) - 1: 0] frame_data;
+    wire [FRAME_DATA_SIZE - 1: 0] frame_data;
     wire [3:0] object_count;
     event_core(
     .clk_frame(clk_frame),

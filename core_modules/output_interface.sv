@@ -23,47 +23,9 @@
 `include "typedefs.svh"
 
 /*
-The VGA resolution is 640 x 480 px, and the degree range is up to a delta of 90 degrees.
-The projected horizontal distance from cylindrical coordinates to Cartesian coordinates is given
-by R * sin(theta - phi), where theta is the object's degree and phi is the degree of the axis.
-
-We add an additional constraint, that the edge of the screen represents 30 degrees from the central
-axis at minimum render distance, 1 * alpha * sin(30) = 240 -> alpha = 480. We will use sine tables
-since there are only 91 cases. (Integral degrees)
-
 Sprites are preprocessed into various transforms, because performing linear transformations
 is highly expensive (especially to store intermediate results) and their results are very 
 likely to repeat. 
-90 x 15 = up to 1350 configurations -> symmetry breaking 
--> 45 x 15 = 675 configurations, and roughly half of these will be invisible, another quarter
-being repeats.
-For every configuration set in the same distance, we will approximate using only 4 derivatives.
--> 4 x 15 = 60 configurations!
-We'll use monochrome sprite sizes from 64x64 (full resolution) to 32x32 (smallest sprite)
-64x64 -> 62x62 -> 60x60 -> ... -> 34x34 -> 32x32.
-Sprites are horizontally symmetric, so for every sprite, we only need to store half of the sprites'
-bits.
-
-This yields a rough memory cost of 86.5k / 2 x 4 = 169 kbits per alien, less than 10% of the 
-1800 kbits available.
-
-By making the four alien types into two pairs of palette-swapped sprites, the number of 
-bits used can be cut down to 84.5 kbits per alien.
-
-That gives us the opportunity to add a two-frame global animation, so in total we can deal
-with aliens in just 84.5 x 2 x 2 = 338 kbits.
-
-
-
-TODO:
-Resolve priority for all objects first, thus only using one read operation on a particular image at any time, allowing for 
-clean memory synthesis.
-
-TODO:
-Change datagram format so that the (y, x) coordinates are passed rather than the less useful (r, theta) coordinates.
-The object data in the datagram should be sorted according to distance.
-We can accomplish this easily using 16 parallel units that sort the objects into 16 buffers, and concatenate the buffers into a sorted output 
-sequence, ranked implicitly by the keys (distance, index).
 */
 
 module output_interface(
@@ -142,7 +104,7 @@ module output_interface(
 	);
 	
 	
-	wire [15:0] pixel_addr [0:OBJ_LIMIT-1];
+	wire [10:0] pixel_addr [0:OBJ_LIMIT-1];
 	wire pixel_valid [0:OBJ_LIMIT-1];
 	wire [1:0] deriv_select [0:OBJ_LIMIT-1];
 	generate
@@ -157,7 +119,7 @@ module output_interface(
             );
 	endgenerate
 	
-	logic [15:0] pixel_addr_obj;
+	logic [10:0] pixel_addr_obj;
 	logic [11:0] palette_color;
 	logic [3:0] distance;
 	logic [1:0] deriv;
@@ -191,7 +153,7 @@ module output_interface(
 	.alien_type(alien_type),
 	.size_select(distance),
 	.deriv_select(deriv),
-	.pixel_addr(pixel_addr_obj),
+	.read_addr(pixel_addr_obj),
 	.palette_out(palette_out)
 	);
 	
