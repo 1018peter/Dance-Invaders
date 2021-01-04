@@ -104,85 +104,29 @@ module output_interface(
 	);
 	
 	
-	wire [10:0] pixel_addr [0:OBJ_LIMIT-1];
-	wire pixel_valid [0:OBJ_LIMIT-1];
-	wire [1:0] deriv_select [0:OBJ_LIMIT-1];
-	generate
-        for(genvar g = 0; g < OBJ_LIMIT; g++)
-            alien_renderer(
-            .h_cnt(h_cnt),
-            .v_cnt(v_cnt),
-            .obj_data(obj_data[g]),
-            .pixel_addr(pixel_addr[g]),
-            .deriv_select(deriv_select[g]),
-            .valid(pixel_valid[g])
-            );
-	endgenerate
-	
-	logic [10:0] pixel_addr_obj;
-	logic [11:0] palette_color;
-	logic [3:0] distance;
-	logic [1:0] deriv;
-	logic [1:0] alien_type;
-	logic [1:0] frame_num;
 	logic obj_layer_valid;
-	always @* begin
-	   pixel_addr_obj = 0;
-	   palette_color = 0;
-	   deriv = 0;
-	   alien_type = 0;
-	   frame_num = 0;
-	   distance = 0;
-	   // Priority encoding to render the closest alien on the current pixel.
-	   for(int i = 0;i < OBJ_LIMIT; ++i) begin
-	       if(obj_data[i]._active && obj_data[i]._quadrant == QUADRANT && pixel_valid[i]) begin
-	           pixel_addr_obj = pixel_addr[i];
-	           distance = obj_data[i]._r;
-	           deriv = deriv_select[i];
-	           alien_type = obj_data[i]._type;
-	           frame_num = obj_data[i]._frame_num;
-	           break;
-	       end
-	   end
-	end
-	
-	wire palette_out;
-	alien_pixel_reader(
-	.clk(clk_25MHz),
-	.frame_num(frame_num),
-	.alien_type(alien_type),
-	.size_select(distance),
-	.deriv_select(deriv),
-	.read_addr(pixel_addr_obj),
-	.palette_out(palette_out)
+	logic [11:0] obj_pixel_out;
+	layer_object #(.QUADRANT(QUADRANT))(
+	.clk_25MHz(clk_25MHz),
+	.obj_data(obj_data),
+	.h_cnt(h_cnt),
+	.v_cnt(v_cnt),
+	.layer_valid(obj_layer_valid),
+	.pixel_out(obj_pixel_out)
 	);
 	
-	logic [11:0] obj_pixel_out;
-	always @* begin
-	   obj_pixel_out = 0;
-	   obj_layer_valid = 0;
-        if(palette_out) begin
-            obj_layer_valid = 1;
-            case(alien_type)
-            0: obj_pixel_out = { 4'h4 - (distance >> 4), 4'h4 - (distance >> 4), 4'hF - (distance >> 1) };
-            1: obj_pixel_out = { 4'h4 - (distance >> 4), 4'hF - (distance >> 1), 4'h4 - (distance >> 4) };
-            2: obj_pixel_out = { 4'hF - (distance >> 1), 4'h4 - (distance >> 4), 4'h4 - (distance >> 4) };
-            3: obj_pixel_out = { 4'hF - (distance >> 1), 4'h4 - (distance >> 4), 4'hF - (distance >> 1) };
-            endcase
-        end
-	end
-	
 	logic laser_layer_valid;
-	wire [9:0] laser_end_y = 480 - 80 - laser_r * 15;
-	always @* begin
-	   laser_layer_valid = 0;
-	   if(laser_quadrant == QUADRANT && laser_active && ((v_cnt >= laser_end_y
-	   && h_cnt <= laser_end_y + 20 && h_cnt >= laser_end_y - 20) ||
-	   h_cnt <= 20 || h_cnt >= VGA_XRES - 20 || v_cnt >= VGA_YRES - 20 || v_cnt <= 20)) begin
-	       // Set union of the laser itself and a square frame around the screen.
-	       laser_layer_valid = 1;
-	   end
-	end
+	logic [11:0] laser_pixel_out;
+	
+	layer_laser #(.QUADRANT(QUADRANT))(
+	.laser_active(laser_active),
+	.laser_r(laser_r),
+	.laser_quadrant(laser_quadrant),
+	.h_cnt(h_cnt),
+	.v_cnt(v_cnt),
+	.layer_valid(laser_layer_valid),
+	.pixel_out(laser_pixel_out)
+	);
 	
 	logic [11:0] rendered_pixel;
 	assign {vgaRed, vgaGreen, vgaBlue} = rendered_pixel;
@@ -197,7 +141,7 @@ module output_interface(
         end
         SCENE_INGAME: begin
             if(laser_layer_valid) begin
-                rendered_pixel = 12'h4_8_F; // Laser color.
+                rendered_pixel = laser_pixel_out;
             end
             else if(obj_layer_valid) begin
                 rendered_pixel = obj_pixel_out;
