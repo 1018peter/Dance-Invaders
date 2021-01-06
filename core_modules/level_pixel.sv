@@ -67,12 +67,12 @@ always@* begin
 
         end
 end
-        memory_txt level(
+        memory_txt level_show(
         .clk(clk),
         .txt_addr(mem_txt_addr),
         .h_point(wire_h_cnt_compressed),
         .v_point(wire_v_cnt_compressed),
         .pixel(pixel_out)
-    )
+    );
 
 endmodule

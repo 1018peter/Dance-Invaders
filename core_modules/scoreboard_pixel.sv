@@ -146,7 +146,7 @@ always @* begin
             reg_v_cnt_compressed=0;
             valid=1;
         end
-        else if(h_cnt>=180&&h_cnt<460&&input_pos==2'd3)) begin
+        else if(h_cnt>=180&&h_cnt<460&&input_pos==2'd3) begin
             mem_txt_addr=0;
             bound=1;
             reg_h_cnt_compressed=0;
@@ -181,7 +181,7 @@ always @* begin
             reg_v_cnt_compressed=0;
             valid=1;
         end
-        else if(h_cnt>=180&&h_cnt<460&&input_pos==2'd3)) begin
+        else if(h_cnt>=180&&h_cnt<460&&input_pos==2'd3) begin
             mem_txt_addr=0;
             bound=1;
             reg_h_cnt_compressed=0;
@@ -201,5 +201,5 @@ memory_txt score(
         .h_point(wire_h_cnt_compressed),
         .v_point(wire_v_cnt_compressed),
         .pixel(pixel_out_ready)
-    )
+    );
 endmodule
