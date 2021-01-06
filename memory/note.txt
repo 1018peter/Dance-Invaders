@@ -1,0 +1,2 @@
+alien_block_mem:width 1,depth 318208
+blk_mem_txt:width  1,depth  1440
