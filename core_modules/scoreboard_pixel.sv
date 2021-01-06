@@ -1,7 +1,8 @@
+`include "constants.svh"
 module scoreboard_pixel(
     input clk,
     input [1:0] input_pos,
-    input [14:0] player_name,
+    input [STRING_SIZE-1:0] player_name,
     input [9:0] h_cnt,
     input [9:0] v_cnt,
     output logic [11:0] pixel_out,
@@ -146,7 +147,7 @@ always @* begin
             reg_v_cnt_compressed=0;
             valid=1;
         end
-        else if(h_cnt>=180&&h_cnt<460&&input_pos==2'd3)) begin
+        else if(h_cnt>=180&&h_cnt<460&&input_pos==2'd3) begin
             mem_txt_addr=0;
             bound=1;
             reg_h_cnt_compressed=0;
@@ -181,7 +182,7 @@ always @* begin
             reg_v_cnt_compressed=0;
             valid=1;
         end
-        else if(h_cnt>=180&&h_cnt<460&&input_pos==2'd3)) begin
+        else if(h_cnt>=180&&h_cnt<460&&input_pos==2'd3) begin
             mem_txt_addr=0;
             bound=1;
             reg_h_cnt_compressed=0;
@@ -201,5 +202,5 @@ memory_txt score(
         .h_point(wire_h_cnt_compressed),
         .v_point(wire_v_cnt_compressed),
         .pixel(pixel_out_ready)
-    )
+    );
 endmodule

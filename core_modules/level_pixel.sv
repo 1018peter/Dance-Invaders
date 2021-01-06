@@ -1,6 +1,7 @@
+`include "constants.svh"
 module level_pixel(
     input clk,
-    input [3:0] level,
+    input [LEVEL_SIZE-1:0] level,
     input [9:0] h_cnt,
     input [9:0] v_cnt,
     output logic [11:0] pixel_out,
@@ -67,12 +68,12 @@ always@* begin
 
         end
 end
-        memory_txt level(
+        memory_txt level_show(
         .clk(clk),
         .txt_addr(mem_txt_addr),
         .h_point(wire_h_cnt_compressed),
         .v_point(wire_v_cnt_compressed),
         .pixel(pixel_out)
-    )
+    );
 
 endmodule
