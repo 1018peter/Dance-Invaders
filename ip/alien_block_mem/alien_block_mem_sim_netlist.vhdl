@@ -1,10 +1,10 @@
 -- Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 -- --------------------------------------------------------------------------------
 -- Tool Version: Vivado v.2020.1.1 (win64) Build 2960000 Wed Aug  5 22:57:20 MDT 2020
--- Date        : Mon Jan  4 21:56:28 2021
+-- Date        : Mon Jan  4 21:56:27 2021
 -- Host        : DESKTOP-RNNELGQ running 64-bit major release  (build 9200)
--- Command     : write_vhdl -force -mode funcsim
---               c:/Users/peter/final_project_control/final_project_control.srcs/sources_1/ip/blk_mem_gen_0/blk_mem_gen_0_sim_netlist.vhdl
+-- Command     : write_vhdl -force -mode funcsim -rename_top alien_block_mem -prefix
+--               alien_block_mem_ blk_mem_gen_0_sim_netlist.vhdl
 -- Design      : blk_mem_gen_0
 -- Purpose     : This VHDL netlist is a functional simulation representation of the design and should not be modified or
 --               synthesized. This netlist cannot be used for SDF annotated simulation.
@@ -14,7 +14,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity blk_mem_gen_0_blk_mem_gen_mux is
+entity alien_block_mem_blk_mem_gen_mux is
   port (
     \^douta\ : out STD_LOGIC_VECTOR ( 0 to 0 );
     DOUTA : in STD_LOGIC_VECTOR ( 0 to 0 );
@@ -25,11 +25,9 @@ entity blk_mem_gen_0_blk_mem_gen_mux is
     \douta[0]_1\ : in STD_LOGIC_VECTOR ( 0 to 0 );
     \douta[0]_2\ : in STD_LOGIC_VECTOR ( 0 to 0 )
   );
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of blk_mem_gen_0_blk_mem_gen_mux : entity is "blk_mem_gen_mux";
-end blk_mem_gen_0_blk_mem_gen_mux;
+end alien_block_mem_blk_mem_gen_mux;
 
-architecture STRUCTURE of blk_mem_gen_0_blk_mem_gen_mux is
+architecture STRUCTURE of alien_block_mem_blk_mem_gen_mux is
   signal \douta[0]_INST_0_i_1_n_0\ : STD_LOGIC;
   signal \douta[0]_INST_0_i_2_n_0\ : STD_LOGIC;
   signal sel_pipe : STD_LOGIC_VECTOR ( 4 downto 2 );
@@ -136,18 +134,16 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity blk_mem_gen_0_blk_mem_gen_prim_wrapper_init is
+entity alien_block_mem_blk_mem_gen_prim_wrapper_init is
   port (
     DOUTA : out STD_LOGIC_VECTOR ( 0 to 0 );
     clka : in STD_LOGIC;
     ENA : in STD_LOGIC;
     addra : in STD_LOGIC_VECTOR ( 15 downto 0 )
   );
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of blk_mem_gen_0_blk_mem_gen_prim_wrapper_init : entity is "blk_mem_gen_prim_wrapper_init";
-end blk_mem_gen_0_blk_mem_gen_prim_wrapper_init;
+end alien_block_mem_blk_mem_gen_prim_wrapper_init;
 
-architecture STRUCTURE of blk_mem_gen_0_blk_mem_gen_prim_wrapper_init is
+architecture STRUCTURE of alien_block_mem_blk_mem_gen_prim_wrapper_init is
   signal CASCADEINA : STD_LOGIC;
   signal CASCADEINB : STD_LOGIC;
   signal \NLW_DEVICE_7SERIES.NO_BMM_INFO.SP.CASCADED_PRIM36.ram_B_DBITERR_UNCONNECTED\ : STD_LOGIC;
@@ -602,7 +598,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized0\ is
+entity \alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized0\ is
   port (
     DOUTA : out STD_LOGIC_VECTOR ( 0 to 0 );
     clka : in STD_LOGIC;
@@ -610,10 +606,10 @@ entity \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized0\ is
     addra : in STD_LOGIC_VECTOR ( 15 downto 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized0\ : entity is "blk_mem_gen_prim_wrapper_init";
-end \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized0\;
+  attribute ORIG_REF_NAME of \alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized0\ : entity is "blk_mem_gen_prim_wrapper_init";
+end \alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized0\;
 
-architecture STRUCTURE of \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized0\ is
+architecture STRUCTURE of \alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized0\ is
   signal CASCADEINA : STD_LOGIC;
   signal CASCADEINB : STD_LOGIC;
   signal \NLW_DEVICE_7SERIES.NO_BMM_INFO.SP.CASCADED_PRIM36.ram_B_DBITERR_UNCONNECTED\ : STD_LOGIC;
@@ -1068,7 +1064,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized1\ is
+entity \alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized1\ is
   port (
     DOUTA : out STD_LOGIC_VECTOR ( 0 to 0 );
     clka : in STD_LOGIC;
@@ -1076,10 +1072,10 @@ entity \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized1\ is
     addra : in STD_LOGIC_VECTOR ( 15 downto 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized1\ : entity is "blk_mem_gen_prim_wrapper_init";
-end \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized1\;
+  attribute ORIG_REF_NAME of \alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized1\ : entity is "blk_mem_gen_prim_wrapper_init";
+end \alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized1\;
 
-architecture STRUCTURE of \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized1\ is
+architecture STRUCTURE of \alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized1\ is
   signal CASCADEINA : STD_LOGIC;
   signal CASCADEINB : STD_LOGIC;
   signal \NLW_DEVICE_7SERIES.NO_BMM_INFO.SP.CASCADED_PRIM36.ram_B_DBITERR_UNCONNECTED\ : STD_LOGIC;
@@ -1534,7 +1530,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized2\ is
+entity \alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized2\ is
   port (
     DOUTA : out STD_LOGIC_VECTOR ( 0 to 0 );
     clka : in STD_LOGIC;
@@ -1542,10 +1538,10 @@ entity \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized2\ is
     addra : in STD_LOGIC_VECTOR ( 15 downto 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized2\ : entity is "blk_mem_gen_prim_wrapper_init";
-end \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized2\;
+  attribute ORIG_REF_NAME of \alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized2\ : entity is "blk_mem_gen_prim_wrapper_init";
+end \alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized2\;
 
-architecture STRUCTURE of \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized2\ is
+architecture STRUCTURE of \alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized2\ is
   signal CASCADEINA : STD_LOGIC;
   signal CASCADEINB : STD_LOGIC;
   signal \NLW_DEVICE_7SERIES.NO_BMM_INFO.SP.CASCADED_PRIM36.ram_B_DBITERR_UNCONNECTED\ : STD_LOGIC;
@@ -2000,7 +1996,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized3\ is
+entity \alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized3\ is
   port (
     DOUTA : out STD_LOGIC_VECTOR ( 0 to 0 );
     clka : in STD_LOGIC;
@@ -2008,10 +2004,10 @@ entity \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized3\ is
     addra : in STD_LOGIC_VECTOR ( 15 downto 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized3\ : entity is "blk_mem_gen_prim_wrapper_init";
-end \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized3\;
+  attribute ORIG_REF_NAME of \alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized3\ : entity is "blk_mem_gen_prim_wrapper_init";
+end \alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized3\;
 
-architecture STRUCTURE of \blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized3\ is
+architecture STRUCTURE of \alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized3\ is
   signal CASCADEINA : STD_LOGIC;
   signal CASCADEINB : STD_LOGIC;
   signal \NLW_DEVICE_7SERIES.NO_BMM_INFO.SP.CASCADED_PRIM36.ram_B_DBITERR_UNCONNECTED\ : STD_LOGIC;
@@ -2466,20 +2462,18 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity blk_mem_gen_0_blk_mem_gen_prim_width is
+entity alien_block_mem_blk_mem_gen_prim_width is
   port (
     DOUTA : out STD_LOGIC_VECTOR ( 0 to 0 );
     clka : in STD_LOGIC;
     ENA : in STD_LOGIC;
     addra : in STD_LOGIC_VECTOR ( 15 downto 0 )
   );
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of blk_mem_gen_0_blk_mem_gen_prim_width : entity is "blk_mem_gen_prim_width";
-end blk_mem_gen_0_blk_mem_gen_prim_width;
+end alien_block_mem_blk_mem_gen_prim_width;
 
-architecture STRUCTURE of blk_mem_gen_0_blk_mem_gen_prim_width is
+architecture STRUCTURE of alien_block_mem_blk_mem_gen_prim_width is
 begin
-\prim_init.ram\: entity work.blk_mem_gen_0_blk_mem_gen_prim_wrapper_init
+\prim_init.ram\: entity work.alien_block_mem_blk_mem_gen_prim_wrapper_init
      port map (
       DOUTA(0) => DOUTA(0),
       ENA => ENA,
@@ -2491,7 +2485,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized0\ is
+entity \alien_block_mem_blk_mem_gen_prim_width__parameterized0\ is
   port (
     DOUTA : out STD_LOGIC_VECTOR ( 0 to 0 );
     clka : in STD_LOGIC;
@@ -2499,12 +2493,12 @@ entity \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized0\ is
     addra : in STD_LOGIC_VECTOR ( 15 downto 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized0\ : entity is "blk_mem_gen_prim_width";
-end \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized0\;
+  attribute ORIG_REF_NAME of \alien_block_mem_blk_mem_gen_prim_width__parameterized0\ : entity is "blk_mem_gen_prim_width";
+end \alien_block_mem_blk_mem_gen_prim_width__parameterized0\;
 
-architecture STRUCTURE of \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized0\ is
+architecture STRUCTURE of \alien_block_mem_blk_mem_gen_prim_width__parameterized0\ is
 begin
-\prim_init.ram\: entity work.\blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized0\
+\prim_init.ram\: entity work.\alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized0\
      port map (
       DOUTA(0) => DOUTA(0),
       ENA => ENA,
@@ -2516,7 +2510,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized1\ is
+entity \alien_block_mem_blk_mem_gen_prim_width__parameterized1\ is
   port (
     DOUTA : out STD_LOGIC_VECTOR ( 0 to 0 );
     clka : in STD_LOGIC;
@@ -2524,12 +2518,12 @@ entity \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized1\ is
     addra : in STD_LOGIC_VECTOR ( 15 downto 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized1\ : entity is "blk_mem_gen_prim_width";
-end \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized1\;
+  attribute ORIG_REF_NAME of \alien_block_mem_blk_mem_gen_prim_width__parameterized1\ : entity is "blk_mem_gen_prim_width";
+end \alien_block_mem_blk_mem_gen_prim_width__parameterized1\;
 
-architecture STRUCTURE of \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized1\ is
+architecture STRUCTURE of \alien_block_mem_blk_mem_gen_prim_width__parameterized1\ is
 begin
-\prim_init.ram\: entity work.\blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized1\
+\prim_init.ram\: entity work.\alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized1\
      port map (
       DOUTA(0) => DOUTA(0),
       ENA => ENA,
@@ -2541,7 +2535,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized2\ is
+entity \alien_block_mem_blk_mem_gen_prim_width__parameterized2\ is
   port (
     DOUTA : out STD_LOGIC_VECTOR ( 0 to 0 );
     clka : in STD_LOGIC;
@@ -2549,12 +2543,12 @@ entity \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized2\ is
     addra : in STD_LOGIC_VECTOR ( 15 downto 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized2\ : entity is "blk_mem_gen_prim_width";
-end \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized2\;
+  attribute ORIG_REF_NAME of \alien_block_mem_blk_mem_gen_prim_width__parameterized2\ : entity is "blk_mem_gen_prim_width";
+end \alien_block_mem_blk_mem_gen_prim_width__parameterized2\;
 
-architecture STRUCTURE of \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized2\ is
+architecture STRUCTURE of \alien_block_mem_blk_mem_gen_prim_width__parameterized2\ is
 begin
-\prim_init.ram\: entity work.\blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized2\
+\prim_init.ram\: entity work.\alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized2\
      port map (
       DOUTA(0) => DOUTA(0),
       ENA => ENA,
@@ -2566,7 +2560,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized3\ is
+entity \alien_block_mem_blk_mem_gen_prim_width__parameterized3\ is
   port (
     DOUTA : out STD_LOGIC_VECTOR ( 0 to 0 );
     clka : in STD_LOGIC;
@@ -2574,12 +2568,12 @@ entity \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized3\ is
     addra : in STD_LOGIC_VECTOR ( 15 downto 0 )
   );
   attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized3\ : entity is "blk_mem_gen_prim_width";
-end \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized3\;
+  attribute ORIG_REF_NAME of \alien_block_mem_blk_mem_gen_prim_width__parameterized3\ : entity is "blk_mem_gen_prim_width";
+end \alien_block_mem_blk_mem_gen_prim_width__parameterized3\;
 
-architecture STRUCTURE of \blk_mem_gen_0_blk_mem_gen_prim_width__parameterized3\ is
+architecture STRUCTURE of \alien_block_mem_blk_mem_gen_prim_width__parameterized3\ is
 begin
-\prim_init.ram\: entity work.\blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized3\
+\prim_init.ram\: entity work.\alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized3\
      port map (
       DOUTA(0) => DOUTA(0),
       ENA => ENA,
@@ -2591,17 +2585,15 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity blk_mem_gen_0_blk_mem_gen_generic_cstr is
+entity alien_block_mem_blk_mem_gen_generic_cstr is
   port (
     douta : out STD_LOGIC_VECTOR ( 0 to 0 );
     clka : in STD_LOGIC;
     addra : in STD_LOGIC_VECTOR ( 18 downto 0 )
   );
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of blk_mem_gen_0_blk_mem_gen_generic_cstr : entity is "blk_mem_gen_generic_cstr";
-end blk_mem_gen_0_blk_mem_gen_generic_cstr;
+end alien_block_mem_blk_mem_gen_generic_cstr;
 
-architecture STRUCTURE of blk_mem_gen_0_blk_mem_gen_generic_cstr is
+architecture STRUCTURE of alien_block_mem_blk_mem_gen_generic_cstr is
   signal ram_douta : STD_LOGIC;
   signal \ram_ena__0_n_0\ : STD_LOGIC;
   signal \ram_ena__1_n_0\ : STD_LOGIC;
@@ -2613,7 +2605,7 @@ architecture STRUCTURE of blk_mem_gen_0_blk_mem_gen_generic_cstr is
   signal \ramloop[3].ram.r_n_0\ : STD_LOGIC;
   signal \ramloop[4].ram.r_n_0\ : STD_LOGIC;
 begin
-\has_mux_a.A\: entity work.blk_mem_gen_0_blk_mem_gen_mux
+\has_mux_a.A\: entity work.alien_block_mem_blk_mem_gen_mux
      port map (
       DOUTA(0) => \ramloop[4].ram.r_n_0\,
       addra(2 downto 0) => addra(18 downto 16),
@@ -2674,35 +2666,35 @@ ram_ena: unisim.vcomponents.LUT3
       I2 => addra(18),
       O => \ram_ena__4\
     );
-\ramloop[0].ram.r\: entity work.blk_mem_gen_0_blk_mem_gen_prim_width
+\ramloop[0].ram.r\: entity work.alien_block_mem_blk_mem_gen_prim_width
      port map (
       DOUTA(0) => ram_douta,
       ENA => ram_ena_n_0,
       addra(15 downto 0) => addra(15 downto 0),
       clka => clka
     );
-\ramloop[1].ram.r\: entity work.\blk_mem_gen_0_blk_mem_gen_prim_width__parameterized0\
+\ramloop[1].ram.r\: entity work.\alien_block_mem_blk_mem_gen_prim_width__parameterized0\
      port map (
       DOUTA(0) => \ramloop[1].ram.r_n_0\,
       ENA => \ram_ena__0_n_0\,
       addra(15 downto 0) => addra(15 downto 0),
       clka => clka
     );
-\ramloop[2].ram.r\: entity work.\blk_mem_gen_0_blk_mem_gen_prim_width__parameterized1\
+\ramloop[2].ram.r\: entity work.\alien_block_mem_blk_mem_gen_prim_width__parameterized1\
      port map (
       DOUTA(0) => \ramloop[2].ram.r_n_0\,
       ENA => \ram_ena__1_n_0\,
       addra(15 downto 0) => addra(15 downto 0),
       clka => clka
     );
-\ramloop[3].ram.r\: entity work.\blk_mem_gen_0_blk_mem_gen_prim_width__parameterized2\
+\ramloop[3].ram.r\: entity work.\alien_block_mem_blk_mem_gen_prim_width__parameterized2\
      port map (
       DOUTA(0) => \ramloop[3].ram.r_n_0\,
       ENA => \ram_ena__2_n_0\,
       addra(15 downto 0) => addra(15 downto 0),
       clka => clka
     );
-\ramloop[4].ram.r\: entity work.\blk_mem_gen_0_blk_mem_gen_prim_width__parameterized3\
+\ramloop[4].ram.r\: entity work.\alien_block_mem_blk_mem_gen_prim_width__parameterized3\
      port map (
       DOUTA(0) => \ramloop[4].ram.r_n_0\,
       ENA => \ram_ena__4\,
@@ -2714,19 +2706,17 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity blk_mem_gen_0_blk_mem_gen_top is
+entity alien_block_mem_blk_mem_gen_top is
   port (
     douta : out STD_LOGIC_VECTOR ( 0 to 0 );
     clka : in STD_LOGIC;
     addra : in STD_LOGIC_VECTOR ( 18 downto 0 )
   );
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of blk_mem_gen_0_blk_mem_gen_top : entity is "blk_mem_gen_top";
-end blk_mem_gen_0_blk_mem_gen_top;
+end alien_block_mem_blk_mem_gen_top;
 
-architecture STRUCTURE of blk_mem_gen_0_blk_mem_gen_top is
+architecture STRUCTURE of alien_block_mem_blk_mem_gen_top is
 begin
-\valid.cstr\: entity work.blk_mem_gen_0_blk_mem_gen_generic_cstr
+\valid.cstr\: entity work.alien_block_mem_blk_mem_gen_generic_cstr
      port map (
       addra(18 downto 0) => addra(18 downto 0),
       clka => clka,
@@ -2737,19 +2727,17 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity blk_mem_gen_0_blk_mem_gen_v8_4_4_synth is
+entity alien_block_mem_blk_mem_gen_v8_4_4_synth is
   port (
     douta : out STD_LOGIC_VECTOR ( 0 to 0 );
     clka : in STD_LOGIC;
     addra : in STD_LOGIC_VECTOR ( 18 downto 0 )
   );
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of blk_mem_gen_0_blk_mem_gen_v8_4_4_synth : entity is "blk_mem_gen_v8_4_4_synth";
-end blk_mem_gen_0_blk_mem_gen_v8_4_4_synth;
+end alien_block_mem_blk_mem_gen_v8_4_4_synth;
 
-architecture STRUCTURE of blk_mem_gen_0_blk_mem_gen_v8_4_4_synth is
+architecture STRUCTURE of alien_block_mem_blk_mem_gen_v8_4_4_synth is
 begin
-\gnbram.gnativebmg.native_blk_mem_gen\: entity work.blk_mem_gen_0_blk_mem_gen_top
+\gnbram.gnativebmg.native_blk_mem_gen\: entity work.alien_block_mem_blk_mem_gen_top
      port map (
       addra(18 downto 0) => addra(18 downto 0),
       clka => clka,
@@ -2760,7 +2748,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity blk_mem_gen_0_blk_mem_gen_v8_4_4 is
+entity alien_block_mem_blk_mem_gen_v8_4_4 is
   port (
     clka : in STD_LOGIC;
     rsta : in STD_LOGIC;
@@ -2827,162 +2815,160 @@ entity blk_mem_gen_0_blk_mem_gen_v8_4_4 is
     s_axi_rdaddrecc : out STD_LOGIC_VECTOR ( 18 downto 0 )
   );
   attribute C_ADDRA_WIDTH : integer;
-  attribute C_ADDRA_WIDTH of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 19;
+  attribute C_ADDRA_WIDTH of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 19;
   attribute C_ADDRB_WIDTH : integer;
-  attribute C_ADDRB_WIDTH of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 19;
+  attribute C_ADDRB_WIDTH of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 19;
   attribute C_ALGORITHM : integer;
-  attribute C_ALGORITHM of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 1;
+  attribute C_ALGORITHM of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 1;
   attribute C_AXI_ID_WIDTH : integer;
-  attribute C_AXI_ID_WIDTH of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 4;
+  attribute C_AXI_ID_WIDTH of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 4;
   attribute C_AXI_SLAVE_TYPE : integer;
-  attribute C_AXI_SLAVE_TYPE of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_AXI_SLAVE_TYPE of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_AXI_TYPE : integer;
-  attribute C_AXI_TYPE of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 1;
+  attribute C_AXI_TYPE of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 1;
   attribute C_BYTE_SIZE : integer;
-  attribute C_BYTE_SIZE of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 9;
+  attribute C_BYTE_SIZE of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 9;
   attribute C_COMMON_CLK : integer;
-  attribute C_COMMON_CLK of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_COMMON_CLK of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_COUNT_18K_BRAM : string;
-  attribute C_COUNT_18K_BRAM of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "0";
+  attribute C_COUNT_18K_BRAM of alien_block_mem_blk_mem_gen_v8_4_4 : entity is "0";
   attribute C_COUNT_36K_BRAM : string;
-  attribute C_COUNT_36K_BRAM of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "10";
+  attribute C_COUNT_36K_BRAM of alien_block_mem_blk_mem_gen_v8_4_4 : entity is "10";
   attribute C_CTRL_ECC_ALGO : string;
-  attribute C_CTRL_ECC_ALGO of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "NONE";
+  attribute C_CTRL_ECC_ALGO of alien_block_mem_blk_mem_gen_v8_4_4 : entity is "NONE";
   attribute C_DEFAULT_DATA : string;
-  attribute C_DEFAULT_DATA of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "0";
+  attribute C_DEFAULT_DATA of alien_block_mem_blk_mem_gen_v8_4_4 : entity is "0";
   attribute C_DISABLE_WARN_BHV_COLL : integer;
-  attribute C_DISABLE_WARN_BHV_COLL of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_DISABLE_WARN_BHV_COLL of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_DISABLE_WARN_BHV_RANGE : integer;
-  attribute C_DISABLE_WARN_BHV_RANGE of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_DISABLE_WARN_BHV_RANGE of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_ELABORATION_DIR : string;
-  attribute C_ELABORATION_DIR of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "./";
+  attribute C_ELABORATION_DIR of alien_block_mem_blk_mem_gen_v8_4_4 : entity is "./";
   attribute C_ENABLE_32BIT_ADDRESS : integer;
-  attribute C_ENABLE_32BIT_ADDRESS of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_ENABLE_32BIT_ADDRESS of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_EN_DEEPSLEEP_PIN : integer;
-  attribute C_EN_DEEPSLEEP_PIN of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_EN_DEEPSLEEP_PIN of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_EN_ECC_PIPE : integer;
-  attribute C_EN_ECC_PIPE of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_EN_ECC_PIPE of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_EN_RDADDRA_CHG : integer;
-  attribute C_EN_RDADDRA_CHG of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_EN_RDADDRA_CHG of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_EN_RDADDRB_CHG : integer;
-  attribute C_EN_RDADDRB_CHG of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_EN_RDADDRB_CHG of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_EN_SAFETY_CKT : integer;
-  attribute C_EN_SAFETY_CKT of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_EN_SAFETY_CKT of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_EN_SHUTDOWN_PIN : integer;
-  attribute C_EN_SHUTDOWN_PIN of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_EN_SHUTDOWN_PIN of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_EN_SLEEP_PIN : integer;
-  attribute C_EN_SLEEP_PIN of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_EN_SLEEP_PIN of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_EST_POWER_SUMMARY : string;
-  attribute C_EST_POWER_SUMMARY of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "Estimated Power for IP     :     2.14975 mW";
+  attribute C_EST_POWER_SUMMARY of alien_block_mem_blk_mem_gen_v8_4_4 : entity is "Estimated Power for IP     :     2.14975 mW";
   attribute C_FAMILY : string;
-  attribute C_FAMILY of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "artix7";
+  attribute C_FAMILY of alien_block_mem_blk_mem_gen_v8_4_4 : entity is "artix7";
   attribute C_HAS_AXI_ID : integer;
-  attribute C_HAS_AXI_ID of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_HAS_AXI_ID of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_HAS_ENA : integer;
-  attribute C_HAS_ENA of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_HAS_ENA of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_HAS_ENB : integer;
-  attribute C_HAS_ENB of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_HAS_ENB of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_HAS_INJECTERR : integer;
-  attribute C_HAS_INJECTERR of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_HAS_INJECTERR of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_HAS_MEM_OUTPUT_REGS_A : integer;
-  attribute C_HAS_MEM_OUTPUT_REGS_A of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 1;
+  attribute C_HAS_MEM_OUTPUT_REGS_A of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 1;
   attribute C_HAS_MEM_OUTPUT_REGS_B : integer;
-  attribute C_HAS_MEM_OUTPUT_REGS_B of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_HAS_MEM_OUTPUT_REGS_B of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_HAS_MUX_OUTPUT_REGS_A : integer;
-  attribute C_HAS_MUX_OUTPUT_REGS_A of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_HAS_MUX_OUTPUT_REGS_A of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_HAS_MUX_OUTPUT_REGS_B : integer;
-  attribute C_HAS_MUX_OUTPUT_REGS_B of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_HAS_MUX_OUTPUT_REGS_B of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_HAS_REGCEA : integer;
-  attribute C_HAS_REGCEA of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_HAS_REGCEA of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_HAS_REGCEB : integer;
-  attribute C_HAS_REGCEB of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_HAS_REGCEB of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_HAS_RSTA : integer;
-  attribute C_HAS_RSTA of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_HAS_RSTA of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_HAS_RSTB : integer;
-  attribute C_HAS_RSTB of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_HAS_RSTB of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_HAS_SOFTECC_INPUT_REGS_A : integer;
-  attribute C_HAS_SOFTECC_INPUT_REGS_A of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_HAS_SOFTECC_INPUT_REGS_A of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_HAS_SOFTECC_OUTPUT_REGS_B : integer;
-  attribute C_HAS_SOFTECC_OUTPUT_REGS_B of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_HAS_SOFTECC_OUTPUT_REGS_B of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_INITA_VAL : string;
-  attribute C_INITA_VAL of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "0";
+  attribute C_INITA_VAL of alien_block_mem_blk_mem_gen_v8_4_4 : entity is "0";
   attribute C_INITB_VAL : string;
-  attribute C_INITB_VAL of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "0";
+  attribute C_INITB_VAL of alien_block_mem_blk_mem_gen_v8_4_4 : entity is "0";
   attribute C_INIT_FILE : string;
-  attribute C_INIT_FILE of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "blk_mem_gen_0.mem";
+  attribute C_INIT_FILE of alien_block_mem_blk_mem_gen_v8_4_4 : entity is "blk_mem_gen_0.mem";
   attribute C_INIT_FILE_NAME : string;
-  attribute C_INIT_FILE_NAME of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "blk_mem_gen_0.mif";
+  attribute C_INIT_FILE_NAME of alien_block_mem_blk_mem_gen_v8_4_4 : entity is "blk_mem_gen_0.mif";
   attribute C_INTERFACE_TYPE : integer;
-  attribute C_INTERFACE_TYPE of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_INTERFACE_TYPE of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_LOAD_INIT_FILE : integer;
-  attribute C_LOAD_INIT_FILE of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 1;
+  attribute C_LOAD_INIT_FILE of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 1;
   attribute C_MEM_TYPE : integer;
-  attribute C_MEM_TYPE of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 3;
+  attribute C_MEM_TYPE of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 3;
   attribute C_MUX_PIPELINE_STAGES : integer;
-  attribute C_MUX_PIPELINE_STAGES of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_MUX_PIPELINE_STAGES of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_PRIM_TYPE : integer;
-  attribute C_PRIM_TYPE of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 1;
+  attribute C_PRIM_TYPE of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 1;
   attribute C_READ_DEPTH_A : integer;
-  attribute C_READ_DEPTH_A of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 318208;
+  attribute C_READ_DEPTH_A of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 318208;
   attribute C_READ_DEPTH_B : integer;
-  attribute C_READ_DEPTH_B of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 318208;
+  attribute C_READ_DEPTH_B of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 318208;
   attribute C_READ_LATENCY_A : integer;
-  attribute C_READ_LATENCY_A of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 1;
+  attribute C_READ_LATENCY_A of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 1;
   attribute C_READ_LATENCY_B : integer;
-  attribute C_READ_LATENCY_B of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 1;
+  attribute C_READ_LATENCY_B of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 1;
   attribute C_READ_WIDTH_A : integer;
-  attribute C_READ_WIDTH_A of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 1;
+  attribute C_READ_WIDTH_A of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 1;
   attribute C_READ_WIDTH_B : integer;
-  attribute C_READ_WIDTH_B of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 1;
+  attribute C_READ_WIDTH_B of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 1;
   attribute C_RSTRAM_A : integer;
-  attribute C_RSTRAM_A of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_RSTRAM_A of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_RSTRAM_B : integer;
-  attribute C_RSTRAM_B of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_RSTRAM_B of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_RST_PRIORITY_A : string;
-  attribute C_RST_PRIORITY_A of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "CE";
+  attribute C_RST_PRIORITY_A of alien_block_mem_blk_mem_gen_v8_4_4 : entity is "CE";
   attribute C_RST_PRIORITY_B : string;
-  attribute C_RST_PRIORITY_B of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "CE";
+  attribute C_RST_PRIORITY_B of alien_block_mem_blk_mem_gen_v8_4_4 : entity is "CE";
   attribute C_SIM_COLLISION_CHECK : string;
-  attribute C_SIM_COLLISION_CHECK of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "ALL";
+  attribute C_SIM_COLLISION_CHECK of alien_block_mem_blk_mem_gen_v8_4_4 : entity is "ALL";
   attribute C_USE_BRAM_BLOCK : integer;
-  attribute C_USE_BRAM_BLOCK of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_USE_BRAM_BLOCK of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_USE_BYTE_WEA : integer;
-  attribute C_USE_BYTE_WEA of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_USE_BYTE_WEA of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_USE_BYTE_WEB : integer;
-  attribute C_USE_BYTE_WEB of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_USE_BYTE_WEB of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_USE_DEFAULT_DATA : integer;
-  attribute C_USE_DEFAULT_DATA of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_USE_DEFAULT_DATA of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_USE_ECC : integer;
-  attribute C_USE_ECC of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_USE_ECC of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_USE_SOFTECC : integer;
-  attribute C_USE_SOFTECC of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_USE_SOFTECC of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_USE_URAM : integer;
-  attribute C_USE_URAM of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 0;
+  attribute C_USE_URAM of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 0;
   attribute C_WEA_WIDTH : integer;
-  attribute C_WEA_WIDTH of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 1;
+  attribute C_WEA_WIDTH of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 1;
   attribute C_WEB_WIDTH : integer;
-  attribute C_WEB_WIDTH of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 1;
+  attribute C_WEB_WIDTH of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 1;
   attribute C_WRITE_DEPTH_A : integer;
-  attribute C_WRITE_DEPTH_A of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 318208;
+  attribute C_WRITE_DEPTH_A of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 318208;
   attribute C_WRITE_DEPTH_B : integer;
-  attribute C_WRITE_DEPTH_B of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 318208;
+  attribute C_WRITE_DEPTH_B of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 318208;
   attribute C_WRITE_MODE_A : string;
-  attribute C_WRITE_MODE_A of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "WRITE_FIRST";
+  attribute C_WRITE_MODE_A of alien_block_mem_blk_mem_gen_v8_4_4 : entity is "WRITE_FIRST";
   attribute C_WRITE_MODE_B : string;
-  attribute C_WRITE_MODE_B of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "WRITE_FIRST";
+  attribute C_WRITE_MODE_B of alien_block_mem_blk_mem_gen_v8_4_4 : entity is "WRITE_FIRST";
   attribute C_WRITE_WIDTH_A : integer;
-  attribute C_WRITE_WIDTH_A of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 1;
+  attribute C_WRITE_WIDTH_A of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 1;
   attribute C_WRITE_WIDTH_B : integer;
-  attribute C_WRITE_WIDTH_B of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is 1;
+  attribute C_WRITE_WIDTH_B of alien_block_mem_blk_mem_gen_v8_4_4 : entity is 1;
   attribute C_XDEVICEFAMILY : string;
-  attribute C_XDEVICEFAMILY of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "artix7";
-  attribute ORIG_REF_NAME : string;
-  attribute ORIG_REF_NAME of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "blk_mem_gen_v8_4_4";
+  attribute C_XDEVICEFAMILY of alien_block_mem_blk_mem_gen_v8_4_4 : entity is "artix7";
   attribute downgradeipidentifiedwarnings : string;
-  attribute downgradeipidentifiedwarnings of blk_mem_gen_0_blk_mem_gen_v8_4_4 : entity is "yes";
-end blk_mem_gen_0_blk_mem_gen_v8_4_4;
+  attribute downgradeipidentifiedwarnings of alien_block_mem_blk_mem_gen_v8_4_4 : entity is "yes";
+end alien_block_mem_blk_mem_gen_v8_4_4;
 
-architecture STRUCTURE of blk_mem_gen_0_blk_mem_gen_v8_4_4 is
+architecture STRUCTURE of alien_block_mem_blk_mem_gen_v8_4_4 is
   signal \<const0>\ : STD_LOGIC;
 begin
   dbiterr <= \<const0>\;
@@ -3053,7 +3039,7 @@ GND: unisim.vcomponents.GND
      port map (
       G => \<const0>\
     );
-inst_blk_mem_gen: entity work.blk_mem_gen_0_blk_mem_gen_v8_4_4_synth
+inst_blk_mem_gen: entity work.alien_block_mem_blk_mem_gen_v8_4_4_synth
      port map (
       addra(18 downto 0) => addra(18 downto 0),
       clka => clka,
@@ -3064,23 +3050,23 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 library UNISIM;
 use UNISIM.VCOMPONENTS.ALL;
-entity blk_mem_gen_0 is
+entity alien_block_mem is
   port (
     clka : in STD_LOGIC;
     addra : in STD_LOGIC_VECTOR ( 18 downto 0 );
     douta : out STD_LOGIC_VECTOR ( 0 to 0 )
   );
   attribute NotValidForBitStream : boolean;
-  attribute NotValidForBitStream of blk_mem_gen_0 : entity is true;
+  attribute NotValidForBitStream of alien_block_mem : entity is true;
   attribute CHECK_LICENSE_TYPE : string;
-  attribute CHECK_LICENSE_TYPE of blk_mem_gen_0 : entity is "blk_mem_gen_0,blk_mem_gen_v8_4_4,{}";
+  attribute CHECK_LICENSE_TYPE of alien_block_mem : entity is "blk_mem_gen_0,blk_mem_gen_v8_4_4,{}";
   attribute downgradeipidentifiedwarnings : string;
-  attribute downgradeipidentifiedwarnings of blk_mem_gen_0 : entity is "yes";
+  attribute downgradeipidentifiedwarnings of alien_block_mem : entity is "yes";
   attribute x_core_info : string;
-  attribute x_core_info of blk_mem_gen_0 : entity is "blk_mem_gen_v8_4_4,Vivado 2020.1.1";
-end blk_mem_gen_0;
+  attribute x_core_info of alien_block_mem : entity is "blk_mem_gen_v8_4_4,Vivado 2020.1.1";
+end alien_block_mem;
 
-architecture STRUCTURE of blk_mem_gen_0 is
+architecture STRUCTURE of alien_block_mem is
   signal NLW_U0_dbiterr_UNCONNECTED : STD_LOGIC;
   signal NLW_U0_rsta_busy_UNCONNECTED : STD_LOGIC;
   signal NLW_U0_rstb_busy_UNCONNECTED : STD_LOGIC;
@@ -3261,7 +3247,7 @@ architecture STRUCTURE of blk_mem_gen_0 is
   attribute x_interface_info of addra : signal is "xilinx.com:interface:bram:1.0 BRAM_PORTA ADDR";
   attribute x_interface_info of douta : signal is "xilinx.com:interface:bram:1.0 BRAM_PORTA DOUT";
 begin
-U0: entity work.blk_mem_gen_0_blk_mem_gen_v8_4_4
+U0: entity work.alien_block_mem_blk_mem_gen_v8_4_4
      port map (
       addra(18 downto 0) => addra(18 downto 0),
       addrb(18 downto 0) => B"0000000000000000000",

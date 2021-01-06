@@ -29,6 +29,9 @@ module mother_board(
     input btnD,
     input btnL,
     input btnR,
+    input ACK0,
+    output [5:0] DOUT0,
+    output REQ0,
     output [15:0] led,
     output [3:0] DIGIT,
     output [6:0] DISPLAY
@@ -56,7 +59,7 @@ module mother_board(
     .DISPLAY(DISPLAY)
     );
     wire packet_valid = 1;
-    /*
+    
     wire ctrl_req;
     wire interface_ack;
     wire [5:0] ctrl_out;
@@ -69,7 +72,7 @@ module mother_board(
     .reg_data_out(ctrl_out),
     .reg_req(ctrl_req)
     );
-    
+    /*
     wire [MESSAGE_SIZE-1:0] recv_data;
     receiver #(.n(MESSAGE_SIZE))
     (

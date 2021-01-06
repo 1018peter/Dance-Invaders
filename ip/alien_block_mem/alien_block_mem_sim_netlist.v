@@ -1,10 +1,10 @@
 // Copyright 1986-2020 Xilinx, Inc. All Rights Reserved.
 // --------------------------------------------------------------------------------
 // Tool Version: Vivado v.2020.1.1 (win64) Build 2960000 Wed Aug  5 22:57:20 MDT 2020
-// Date        : Mon Jan  4 21:56:28 2021
+// Date        : Mon Jan  4 21:56:27 2021
 // Host        : DESKTOP-RNNELGQ running 64-bit major release  (build 9200)
-// Command     : write_verilog -force -mode funcsim
-//               c:/Users/peter/final_project_control/final_project_control.srcs/sources_1/ip/blk_mem_gen_0/blk_mem_gen_0_sim_netlist.v
+// Command     : write_verilog -force -mode funcsim -rename_top alien_block_mem -prefix
+//               alien_block_mem_ blk_mem_gen_0_sim_netlist.v
 // Design      : blk_mem_gen_0
 // Purpose     : This verilog netlist is a functional simulation representation of the design and should not be modified
 //               or synthesized. This netlist cannot be used for SDF annotated simulation.
@@ -14,7 +14,7 @@
 
 (* CHECK_LICENSE_TYPE = "blk_mem_gen_0,blk_mem_gen_v8_4_4,{}" *) (* downgradeipidentifiedwarnings = "yes" *) (* x_core_info = "blk_mem_gen_v8_4_4,Vivado 2020.1.1" *) 
 (* NotValidForBitStream *)
-module blk_mem_gen_0
+module alien_block_mem
    (clka,
     addra,
     douta);
@@ -123,7 +123,7 @@ module blk_mem_gen_0
   (* C_XDEVICEFAMILY = "artix7" *) 
   (* KEEP_HIERARCHY = "soft" *) 
   (* downgradeipidentifiedwarnings = "yes" *) 
-  blk_mem_gen_0_blk_mem_gen_v8_4_4 U0
+  alien_block_mem_blk_mem_gen_v8_4_4 U0
        (.addra(addra),
         .addrb({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0}),
         .clka(clka),
@@ -189,8 +189,7 @@ module blk_mem_gen_0
         .web(1'b0));
 endmodule
 
-(* ORIG_REF_NAME = "blk_mem_gen_generic_cstr" *) 
-module blk_mem_gen_0_blk_mem_gen_generic_cstr
+module alien_block_mem_blk_mem_gen_generic_cstr
    (douta,
     clka,
     addra);
@@ -212,7 +211,7 @@ module blk_mem_gen_0_blk_mem_gen_generic_cstr
   wire \ramloop[3].ram.r_n_0 ;
   wire \ramloop[4].ram.r_n_0 ;
 
-  blk_mem_gen_0_blk_mem_gen_mux \has_mux_a.A 
+  alien_block_mem_blk_mem_gen_mux \has_mux_a.A 
        (.DOUTA(\ramloop[4].ram.r_n_0 ),
         .addra(addra[18:16]),
         .clka(clka),
@@ -256,35 +255,34 @@ module blk_mem_gen_0_blk_mem_gen_generic_cstr
         .I1(addra[16]),
         .I2(addra[18]),
         .O(ram_ena__4));
-  blk_mem_gen_0_blk_mem_gen_prim_width \ramloop[0].ram.r 
+  alien_block_mem_blk_mem_gen_prim_width \ramloop[0].ram.r 
        (.DOUTA(ram_douta),
         .ENA(ram_ena_n_0),
         .addra(addra[15:0]),
         .clka(clka));
-  blk_mem_gen_0_blk_mem_gen_prim_width__parameterized0 \ramloop[1].ram.r 
+  alien_block_mem_blk_mem_gen_prim_width__parameterized0 \ramloop[1].ram.r 
        (.DOUTA(\ramloop[1].ram.r_n_0 ),
         .ENA(ram_ena__0_n_0),
         .addra(addra[15:0]),
         .clka(clka));
-  blk_mem_gen_0_blk_mem_gen_prim_width__parameterized1 \ramloop[2].ram.r 
+  alien_block_mem_blk_mem_gen_prim_width__parameterized1 \ramloop[2].ram.r 
        (.DOUTA(\ramloop[2].ram.r_n_0 ),
         .ENA(ram_ena__1_n_0),
         .addra(addra[15:0]),
         .clka(clka));
-  blk_mem_gen_0_blk_mem_gen_prim_width__parameterized2 \ramloop[3].ram.r 
+  alien_block_mem_blk_mem_gen_prim_width__parameterized2 \ramloop[3].ram.r 
        (.DOUTA(\ramloop[3].ram.r_n_0 ),
         .ENA(ram_ena__2_n_0),
         .addra(addra[15:0]),
         .clka(clka));
-  blk_mem_gen_0_blk_mem_gen_prim_width__parameterized3 \ramloop[4].ram.r 
+  alien_block_mem_blk_mem_gen_prim_width__parameterized3 \ramloop[4].ram.r 
        (.DOUTA(\ramloop[4].ram.r_n_0 ),
         .ENA(ram_ena__4),
         .addra(addra[15:0]),
         .clka(clka));
 endmodule
 
-(* ORIG_REF_NAME = "blk_mem_gen_mux" *) 
-module blk_mem_gen_0_blk_mem_gen_mux
+module alien_block_mem_blk_mem_gen_mux
    (douta,
     DOUTA,
     addra,
@@ -387,8 +385,7 @@ module blk_mem_gen_0_blk_mem_gen_mux
         .R(1'b0));
 endmodule
 
-(* ORIG_REF_NAME = "blk_mem_gen_prim_width" *) 
-module blk_mem_gen_0_blk_mem_gen_prim_width
+module alien_block_mem_blk_mem_gen_prim_width
    (DOUTA,
     clka,
     ENA,
@@ -403,7 +400,7 @@ module blk_mem_gen_0_blk_mem_gen_prim_width
   wire [15:0]addra;
   wire clka;
 
-  blk_mem_gen_0_blk_mem_gen_prim_wrapper_init \prim_init.ram 
+  alien_block_mem_blk_mem_gen_prim_wrapper_init \prim_init.ram 
        (.DOUTA(DOUTA),
         .ENA(ENA),
         .addra(addra),
@@ -411,7 +408,7 @@ module blk_mem_gen_0_blk_mem_gen_prim_width
 endmodule
 
 (* ORIG_REF_NAME = "blk_mem_gen_prim_width" *) 
-module blk_mem_gen_0_blk_mem_gen_prim_width__parameterized0
+module alien_block_mem_blk_mem_gen_prim_width__parameterized0
    (DOUTA,
     clka,
     ENA,
@@ -426,7 +423,7 @@ module blk_mem_gen_0_blk_mem_gen_prim_width__parameterized0
   wire [15:0]addra;
   wire clka;
 
-  blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized0 \prim_init.ram 
+  alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized0 \prim_init.ram 
        (.DOUTA(DOUTA),
         .ENA(ENA),
         .addra(addra),
@@ -434,7 +431,7 @@ module blk_mem_gen_0_blk_mem_gen_prim_width__parameterized0
 endmodule
 
 (* ORIG_REF_NAME = "blk_mem_gen_prim_width" *) 
-module blk_mem_gen_0_blk_mem_gen_prim_width__parameterized1
+module alien_block_mem_blk_mem_gen_prim_width__parameterized1
    (DOUTA,
     clka,
     ENA,
@@ -449,7 +446,7 @@ module blk_mem_gen_0_blk_mem_gen_prim_width__parameterized1
   wire [15:0]addra;
   wire clka;
 
-  blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized1 \prim_init.ram 
+  alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized1 \prim_init.ram 
        (.DOUTA(DOUTA),
         .ENA(ENA),
         .addra(addra),
@@ -457,7 +454,7 @@ module blk_mem_gen_0_blk_mem_gen_prim_width__parameterized1
 endmodule
 
 (* ORIG_REF_NAME = "blk_mem_gen_prim_width" *) 
-module blk_mem_gen_0_blk_mem_gen_prim_width__parameterized2
+module alien_block_mem_blk_mem_gen_prim_width__parameterized2
    (DOUTA,
     clka,
     ENA,
@@ -472,7 +469,7 @@ module blk_mem_gen_0_blk_mem_gen_prim_width__parameterized2
   wire [15:0]addra;
   wire clka;
 
-  blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized2 \prim_init.ram 
+  alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized2 \prim_init.ram 
        (.DOUTA(DOUTA),
         .ENA(ENA),
         .addra(addra),
@@ -480,7 +477,7 @@ module blk_mem_gen_0_blk_mem_gen_prim_width__parameterized2
 endmodule
 
 (* ORIG_REF_NAME = "blk_mem_gen_prim_width" *) 
-module blk_mem_gen_0_blk_mem_gen_prim_width__parameterized3
+module alien_block_mem_blk_mem_gen_prim_width__parameterized3
    (DOUTA,
     clka,
     ENA,
@@ -495,15 +492,14 @@ module blk_mem_gen_0_blk_mem_gen_prim_width__parameterized3
   wire [15:0]addra;
   wire clka;
 
-  blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized3 \prim_init.ram 
+  alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized3 \prim_init.ram 
        (.DOUTA(DOUTA),
         .ENA(ENA),
         .addra(addra),
         .clka(clka));
 endmodule
 
-(* ORIG_REF_NAME = "blk_mem_gen_prim_wrapper_init" *) 
-module blk_mem_gen_0_blk_mem_gen_prim_wrapper_init
+module alien_block_mem_blk_mem_gen_prim_wrapper_init
    (DOUTA,
     clka,
     ENA,
@@ -961,7 +957,7 @@ module blk_mem_gen_0_blk_mem_gen_prim_wrapper_init
 endmodule
 
 (* ORIG_REF_NAME = "blk_mem_gen_prim_wrapper_init" *) 
-module blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized0
+module alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized0
    (DOUTA,
     clka,
     ENA,
@@ -1419,7 +1415,7 @@ module blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized0
 endmodule
 
 (* ORIG_REF_NAME = "blk_mem_gen_prim_wrapper_init" *) 
-module blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized1
+module alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized1
    (DOUTA,
     clka,
     ENA,
@@ -1877,7 +1873,7 @@ module blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized1
 endmodule
 
 (* ORIG_REF_NAME = "blk_mem_gen_prim_wrapper_init" *) 
-module blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized2
+module alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized2
    (DOUTA,
     clka,
     ENA,
@@ -2335,7 +2331,7 @@ module blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized2
 endmodule
 
 (* ORIG_REF_NAME = "blk_mem_gen_prim_wrapper_init" *) 
-module blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized3
+module alien_block_mem_blk_mem_gen_prim_wrapper_init__parameterized3
    (DOUTA,
     clka,
     ENA,
@@ -2792,8 +2788,7 @@ module blk_mem_gen_0_blk_mem_gen_prim_wrapper_init__parameterized3
         .WEBWE({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0}));
 endmodule
 
-(* ORIG_REF_NAME = "blk_mem_gen_top" *) 
-module blk_mem_gen_0_blk_mem_gen_top
+module alien_block_mem_blk_mem_gen_top
    (douta,
     clka,
     addra);
@@ -2805,7 +2800,7 @@ module blk_mem_gen_0_blk_mem_gen_top
   wire clka;
   wire [0:0]douta;
 
-  blk_mem_gen_0_blk_mem_gen_generic_cstr \valid.cstr 
+  alien_block_mem_blk_mem_gen_generic_cstr \valid.cstr 
        (.addra(addra),
         .clka(clka),
         .douta(douta));
@@ -2836,8 +2831,8 @@ endmodule
 (* C_WEA_WIDTH = "1" *) (* C_WEB_WIDTH = "1" *) (* C_WRITE_DEPTH_A = "318208" *) 
 (* C_WRITE_DEPTH_B = "318208" *) (* C_WRITE_MODE_A = "WRITE_FIRST" *) (* C_WRITE_MODE_B = "WRITE_FIRST" *) 
 (* C_WRITE_WIDTH_A = "1" *) (* C_WRITE_WIDTH_B = "1" *) (* C_XDEVICEFAMILY = "artix7" *) 
-(* ORIG_REF_NAME = "blk_mem_gen_v8_4_4" *) (* downgradeipidentifiedwarnings = "yes" *) 
-module blk_mem_gen_0_blk_mem_gen_v8_4_4
+(* downgradeipidentifiedwarnings = "yes" *) 
+module alien_block_mem_blk_mem_gen_v8_4_4
    (clka,
     rsta,
     ena,
@@ -3036,14 +3031,13 @@ module blk_mem_gen_0_blk_mem_gen_v8_4_4
   assign sbiterr = \<const0> ;
   GND GND
        (.G(\<const0> ));
-  blk_mem_gen_0_blk_mem_gen_v8_4_4_synth inst_blk_mem_gen
+  alien_block_mem_blk_mem_gen_v8_4_4_synth inst_blk_mem_gen
        (.addra(addra),
         .clka(clka),
         .douta(douta));
 endmodule
 
-(* ORIG_REF_NAME = "blk_mem_gen_v8_4_4_synth" *) 
-module blk_mem_gen_0_blk_mem_gen_v8_4_4_synth
+module alien_block_mem_blk_mem_gen_v8_4_4_synth
    (douta,
     clka,
     addra);
@@ -3055,7 +3049,7 @@ module blk_mem_gen_0_blk_mem_gen_v8_4_4_synth
   wire clka;
   wire [0:0]douta;
 
-  blk_mem_gen_0_blk_mem_gen_top \gnbram.gnativebmg.native_blk_mem_gen 
+  alien_block_mem_blk_mem_gen_top \gnbram.gnativebmg.native_blk_mem_gen 
        (.addra(addra),
         .clka(clka),
         .douta(douta));

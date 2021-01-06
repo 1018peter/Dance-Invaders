@@ -53,7 +53,7 @@
 `timescale 1ns/1ps
 
 (* DowngradeIPIdentifiedWarnings = "yes" *)
-module blk_mem_gen_0 (
+module alien_block_mem (
   clka,
   addra,
   douta
@@ -84,8 +84,8 @@ output wire [0 : 0] douta;
     .C_ALGORITHM(1),
     .C_PRIM_TYPE(1),
     .C_LOAD_INIT_FILE(1),
-    .C_INIT_FILE_NAME("blk_mem_gen_0.mif"),
-    .C_INIT_FILE("blk_mem_gen_0.mem"),
+    .C_INIT_FILE_NAME("alien_block_mem.mif"),
+    .C_INIT_FILE("alien_block_mem.mem"),
     .C_USE_DEFAULT_DATA(0),
     .C_DEFAULT_DATA("0"),
     .C_HAS_RSTA(0),
