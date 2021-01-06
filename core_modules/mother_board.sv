@@ -25,15 +25,19 @@ module mother_board(
     input clk,
     input rst,
     input RxD,
+    input btnU,
+    input btnD,
+    input btnL,
+    input btnR,
     output [15:0] led,
     output [3:0] DIGIT,
-    output [6:0] DISPLAY,
+    output [6:0] DISPLAY
     
-    output [3:0] vgaRed,
-    output [3:0] vgaGreen,
-    output [3:0] vgaBlue,
-    output hsync,
-    output vsync
+//    output [3:0] vgaRed,
+//    output [3:0] vgaGreen,
+//    output [3:0] vgaBlue,
+//    output hsync,
+//    output vsync
     
     );
     
@@ -41,6 +45,10 @@ module mother_board(
     control_core (
     .clk(clk),
     .rst(rst),
+    .btnU(btnU),
+    .btnD(btnD),
+    .btnL(btnL),
+    .btnR(btnR),
     .RxD(RxD),
     .datagram(datagram),
     .led(led),
@@ -73,6 +81,7 @@ module mother_board(
     .reg_valid(packet_valid)
     );
     */
+    /*
     reg [MESSAGE_SIZE-1:0] reg_datagram;
     always @(posedge clk) begin
         if(rst) reg_datagram <= 0;
@@ -89,6 +98,6 @@ module mother_board(
     .hsync(hsync),
     .vsync(vsync)
     );
-    
+    */
     
 endmodule

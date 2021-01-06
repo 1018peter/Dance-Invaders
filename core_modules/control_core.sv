@@ -24,6 +24,11 @@
 module control_core(
     input clk, // 100MHz
     input rst, // btnC
+    // pushbutton inputs for debug and for when no dancepad is available
+    input btnU,
+    input btnD,
+    input btnL,
+    input btnR,
     input RxD,
     output [MESSAGE_SIZE - 1:0] datagram,
     output [15:0] led,
@@ -60,7 +65,7 @@ module control_core(
     
     always @(posedge clk_main, posedge rst) begin
         if(rst) event_buffer <= 0;
-        else if(packet_valid) event_buffer <= event_packet;
+        else if(packet_valid) event_buffer <= event_packet | { 4'b0000, btnR, btnL, btnD, btnU };
     end
     
     genvar k;
@@ -76,7 +81,7 @@ module control_core(
     if(event_onepulse[BUTTON_UP]) dir = UP;
     else if(event_onepulse[BUTTON_DOWN]) dir = DOWN;
     else if(event_onepulse[BUTTON_LEFT]) dir = LEFT;
-    else dir = DOWN;
+    else dir = RIGHT;
     end
     
     // State transition edges.
@@ -140,6 +145,7 @@ module control_core(
     wire [3:0] object_count;
     event_core(
     .clk_frame(clk_frame),
+    .clk_sort(clk_main),
     .rst(rst || wire_game_start),
     .en(cur_state == SCENE_INGAME),
     .spawn_laser(|event_onepulse[BUTTON_RIGHT:BUTTON_UP]),
@@ -210,7 +216,7 @@ module control_core(
     end
     
     wire [6:0] digit [0:3];
-    hex_decoder(cur_level, digit[0]);
+    hex_decoder(frame_data[15:12], digit[0]);
     hex_decoder(object_count, digit[1]);
     //hex_decoder(timer_count[9:8], digit[1]);
     hex_decoder(timer_count[7:4], digit[2]);
@@ -223,6 +229,7 @@ module control_core(
     seven_segment(clk, {digit[0], digit[1], digit[2], digit[3]}, DIGIT, DISPLAY);
     assign led[STATE_SIZE - 1:0] = cur_state;
     assign led[15:8] = event_buffer;
+    assign led[7:6] = frame_data[17:16];
     
 endmodule
 

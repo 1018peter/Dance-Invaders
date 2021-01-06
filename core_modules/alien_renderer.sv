@@ -49,7 +49,7 @@ module alien_renderer(
         end
         else begin // Left-side. Mirror.
             deriv_select = obj_data._deriv_left;
-            if(obj_data._x_pos >= halfwidth) valid = 0;
+            if(obj_data._x_pos - h_cnt >= halfwidth) valid = 0;
             pixel_addr = ((v_cnt - (obj_data._y_pos - halfheight)) * halfwidth) + (obj_data._x_pos - h_cnt);
         
         end

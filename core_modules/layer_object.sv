@@ -59,9 +59,11 @@ module layer_object(
 	   alien_type = 0;
 	   frame_num = 0;
 	   distance = 0;
+	   obj_layer_valid = 0;
 	   // Priority encoding to render the closest alien on the current pixel.
 	   for(int i = 0;i < OBJ_LIMIT; ++i) begin
 	       if(obj_data[i]._active && obj_data[i]._quadrant == QUADRANT && pixel_valid[i]) begin
+	           obj_layer_valid = 1;
 	           pixel_addr_obj = pixel_addr[i];
 	           distance = obj_data[i]._r;
 	           deriv = deriv_select[i];
@@ -87,13 +89,13 @@ module layer_object(
 	always @* begin
 	   pixel_out = 0;
 	   layer_valid = 0;
-        if(palette_out) begin
+        if(palette_out && obj_layer_valid) begin
             layer_valid = 1;
             case(alien_type)
-            0: pixel_out = { 4'h4 - (distance >> 4), 4'h4 - (distance >> 4), 4'hF - (distance >> 1) };
-            1: pixel_out = { 4'h4 - (distance >> 4), 4'hF - (distance >> 1), 4'h4 - (distance >> 4) };
-            2: pixel_out = { 4'hF - (distance >> 1), 4'h4 - (distance >> 4), 4'h4 - (distance >> 4) };
-            3: pixel_out = { 4'hF - (distance >> 1), 4'h4 - (distance >> 4), 4'hF - (distance >> 1) };
+            0: pixel_out = { 4'h4 - (distance >> 3), 4'h4 - (distance >> 3), 4'hF };
+            1: pixel_out = { 4'h4 - (distance >> 3), 4'hF, 4'h4 - (distance >> 3) };
+            2: pixel_out = { 4'hF, 4'h4 - (distance >> 3), 4'h4 - (distance >> 3) };
+            3: pixel_out = { 4'hF, 4'h4 - (distance >> 3), 4'hF };
             endcase
         end
 	end

@@ -45,11 +45,13 @@ module output_interface(
     parameter VGA_YRES = 480;
     
     // Syntactic sugar that illustrates the recovery of essential variables from the datagram.
-    wire [STATE_SIZE - 1:0] core_state = datagram[STATE_SIZE - 1:0];
-    wire [INGAME_DATA_SIZE - 1:0] ingame_data = datagram[STATE_SIZE + INGAME_DATA_SIZE - 1:STATE_SIZE];
-    wire [SCORE_SIZE - 1:0] score_data = ingame_data[SCORE_SIZE + LEVEL_SIZE - 1:LEVEL_SIZE];
-    wire [LEVEL_SIZE - 1:0] level_data = ingame_data[LEVEL_SIZE - 1:0];
-    wire [FRAME_DATA_SIZE - 1:0] frame_data = ingame_data[SCORE_SIZE + LEVEL_SIZE + FRAME_DATA_SIZE - 1: SCORE_SIZE + LEVEL_SIZE];
+    wire [STATE_SIZE - 1:0] core_state;
+    wire [INGAME_DATA_SIZE - 1:0] ingame_data;
+    assign { ingame_data, core_state } = datagram;
+    wire [SCORE_SIZE - 1:0] score_data;
+    wire [LEVEL_SIZE - 1:0] level_data;
+    wire [FRAME_DATA_SIZE - 1:0] frame_data;
+    assign { frame_data, score_data, level_data } = ingame_data;
     wire laser_active = frame_data[0];
     wire laser_r = frame_data[4:1];
     wire laser_quadrant = frame_data[6:5];
@@ -119,6 +121,7 @@ module output_interface(
 	logic [11:0] laser_pixel_out;
 	
 	layer_laser #(.QUADRANT(QUADRANT))(
+	.clk(clk_25MHz),
 	.laser_active(laser_active),
 	.laser_r(laser_r),
 	.laser_quadrant(laser_quadrant),
@@ -132,7 +135,7 @@ module output_interface(
 	assign {vgaRed, vgaGreen, vgaBlue} = rendered_pixel;
     always @* begin
         rendered_pixel = pixel_bg;
-        case(core_state)
+        if(valid) case(core_state)
         SCENE_GAME_START: begin
         
         end
