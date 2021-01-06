@@ -31,13 +31,18 @@ typedef struct packed {
     bit [2:0] _hp; // Health point.
 } Alien;
 
-// Parallel output format for rendering.
+// Parallel output format for rendering. TODO!
 typedef struct packed{
 	bit _active;
-	AlienType _type;
+	bit [$size(AlienType)-1:0] _type;
 	bit [1:0] _frame_num;
-	bit [3:0] _r;
-	Degree _theta;
+	bit [3:0] _r; // The distance between the alien and the player, used for determining transform.
+	//bit [$size(Degree) - 1:0] _theta;
+	bit [1:0] _quadrant; // Tag that identifies the quadrant the alien is in for rendering purposes.
+	bit [9:0] _x_pos; // The projected coordinates of the alien onto the 2D display screen. (0~640)
+	bit [9:0] _y_pos; // (0~480)
+	bit [1:0] _deriv_left; // The identifier of the derivative transform that should be displayed.
+	bit [1:0] _deriv_right; // See above. 
 } AlienData;
 
 
