@@ -553,7 +553,7 @@ end
 
 
 
-blk_mem_gen_0(
+alien_block_mem(
 .clka(clk),
 .addra(pixel_addr),
 .douta(palette_out)
