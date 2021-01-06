@@ -161,7 +161,7 @@ module output_interface(
         );
     logic scoreboard_valid;
     logic [11:0] scoreboard_pixel_out;
-    level_pixel(
+    scoreboard_pixel(
         .clk(clk_25MHz),
         .h_cnt(h_cnt),
         .v_cnt(v_cnt),
