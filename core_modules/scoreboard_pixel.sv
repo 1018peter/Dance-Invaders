@@ -1,7 +1,8 @@
+`include "constants.svh"
 module scoreboard_pixel(
     input clk,
     input [1:0] input_pos,
-    input [14:0] player_name,
+    input [STRING_SIZE-1:0] player_name,
     input [9:0] h_cnt,
     input [9:0] v_cnt,
     output logic [11:0] pixel_out,

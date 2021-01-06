@@ -1,6 +1,7 @@
+`include "constants.svh"
 module level_pixel(
     input clk,
-    input [3:0] level,
+    input [LEVEL_SIZE-1:0] level,
     input [9:0] h_cnt,
     input [9:0] v_cnt,
     output logic [11:0] pixel_out,
