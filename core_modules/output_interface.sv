@@ -131,44 +131,19 @@ module output_interface(
 	.pixel_out(laser_pixel_out)
 	);
 	
-    logic game_start_valid;
-    logic [11:0] start_pixel_out;
-    game_start_pixel(
+    
+    logic txt_valid;
+    logic [11:0] txt_pixel_out;
+    txt_pixel(
         .clk(clk_25MHz),
         .h_cnt(h_cnt),
         .v_cnt(v_cnt),
-        .pixel_out(start_pixel_out),
-        .valid(game_start_valid)
-        );
-    logic level_valid;
-    logic [11:0] level_pixel_out;
-    level_pixel(
-        .clk(clk_25MHz),
-        .h_cnt(h_cnt),
-        .v_cnt(v_cnt),
+        .state(core_state),
         .level(level_data),
-        .pixel_out(level_pixel_out),
-        .valid(level_valid)
-        );
-    logic game_over_valid;
-    logic [11:0] over_pixel_out;
-    game_over_pixel(
-        .clk(clk_25MHz),
-        .h_cnt(h_cnt),
-        .v_cnt(v_cnt),
-        .pixel_out(over_pixel_out),
-        .valid(game_over_valid)
-        );
-    logic scoreboard_valid;
-    logic [11:0] scoreboard_pixel_out;
-    scoreboard_pixel(
-        .clk(clk_25MHz),
-        .h_cnt(h_cnt),
-        .v_cnt(v_cnt),
         .input_pos(input_pos),
         .player_name(player_name),
-        .pixel_out(scoreboard_pixel_out),
-        .valid(scoreboard_valid)
+        .pixel_out(txt_pixel_out),
+        .valid(txt_valid)
         );
 
 	logic [11:0] rendered_pixel;
@@ -177,13 +152,13 @@ module output_interface(
         rendered_pixel = pixel_bg;
         if(valid) case(core_state)
         SCENE_GAME_START: begin
-            if(game_start_valid) begin
-                rendered_pixel =start_pixel_out;
+            if(txt_valid) begin
+                rendered_pixel =txt_pixel_out;
             end
         end
         SCENE_LEVEL_START: begin
-            if(level_valid) begin
-                rendered_pixel =level_pixel_out;
+            if(txt_valid) begin
+                rendered_pixel =txt_pixel_out;
             end  
         end
         SCENE_INGAME: begin
@@ -195,13 +170,13 @@ module output_interface(
             end
         end
         SCENE_GAME_OVER: begin
-            if(game_over_valid) begin
-                rendered_pixel =over_pixel_out;
+            if(txt_valid) begin
+                rendered_pixel =txt_pixel_out;
             end
         end
         SCENE_SCOREBOARD: begin
-            if(scoreboard_valid) begin
-                rendered_pixel =scoreboard_pixel_out;
+            if(txt_valid) begin
+                rendered_pixel =txt_pixel_out;
             end
         end
         default: begin
