@@ -77,8 +77,8 @@ module output_interface(
     wire [SCORE_SIZE - 1:0] score [0:4];
     wire [STRING_SIZE - 1:0] name [0:4];
     wire [1:0] input_pos;
-    assign { score[4], name[4], score[3], name[3], score[2], name[2], score[1], name[1],
-    score[0], name[0], player_score, player_name, input_pos, scoreboard_state } = scoreboard_data;
+    assign { name[4], score[4], name[3], score[3], name[2], score[2], name[1], score[1],
+    name[0], score[0], player_name, player_score, input_pos, scoreboard_state } = scoreboard_data;
 	
 	
 	wire clk_25MHz;
