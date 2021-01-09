@@ -134,6 +134,8 @@ module output_interface(
     
     logic txt_valid;
     logic [11:0] txt_pixel_out;
+    logic [STRING_SIZE*5-1:0] name_stream={name[4],name[3],name[2],name[1],name[0]};
+    logic [SCORE_SIZE*5-1:0] score_stream={score[4],score[3],score[2],score[1],score[0]};
     txt_pixel(
         .clk(clk_25MHz),
         .h_cnt(h_cnt),
@@ -142,6 +144,9 @@ module output_interface(
         .level(level_data),
         .input_pos(input_pos),
         .player_name(player_name),
+        .score(player_score),
+        .player_name_record(name_stream),
+        .score_record(score_stream),
         .pixel_out(txt_pixel_out),
         .valid(txt_valid)
         );

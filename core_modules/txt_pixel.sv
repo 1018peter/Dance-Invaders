@@ -4,6 +4,9 @@ module txt_pixel(
     input [LEVEL_SIZE-1:0] level,
     input [1:0] input_pos,
     input [STRING_SIZE-1:0] player_name,
+    input [STRING_SIZE*5-1:0] player_name_record,
+    input [SCORE_SIZE-1:0] score,
+    input [SCORE_SIZE*5-1:0] score_record,
     input [STATE_SIZE-1:0] state,
     input [9:0] h_cnt,
     input [9:0] v_cnt,
@@ -21,13 +24,19 @@ parameter R = 27;
 parameter T = 29;
 parameter V = 31;
 parameter L = 21;
-logic [4:0] ch[0:2];
+logic [CHAR_SIZE-1:0] ch[0:2];
+logic [CHAR_SIZE-1:0] ch_record[4:0][0:2];
+logic [SCORE_SIZE-1:0] score_rank[4:0];
 wire [11:0] pixel_out_ready;
 logic bound;
 logic [5:0] mem_txt_addr;
 reg [9:0] reg_h_cnt_compressed;
 reg [9:0] reg_v_cnt_compressed;
 assign {ch[0],ch[1],ch[2]}=player_name;
+assign {ch_record[4][0],ch_record[4][1],ch_record[4][2],ch_record[3][0],ch_record[3][1],
+        ch_record[3][2],ch_record[2][0],ch_record[2][1],ch_record[2][2],ch_record[1][0],
+        ch_record[1][1],ch_record[1][2],ch_record[0][0],ch_record[0][1],ch_record[0][2]}=player_name_record;
+assign {score_rank[4],score_rank[3],score_rank[2],score_rank[1],score_rank[0]}=score_record;
 assign pixel_out=(bound)?12'hfff:pixel_out_ready;
 always @* begin
         valid=0;
@@ -207,56 +216,56 @@ always @* begin
         end//scene end
 
         else if(state==SCENE_SCOREBOARD) begin //scene begin
-        if(v_cnt>=38&&v_cnt<150) begin
+        if(v_cnt>=18&&v_cnt<74) begin
 
 
-        if(h_cnt>=170&&h_cnt<250) begin
+        if(h_cnt>=245&&h_cnt<285) begin
             mem_txt_addr=ch[0]+10;
-            reg_h_cnt_compressed=(h_cnt-170)>>4;
-            reg_v_cnt_compressed=(v_cnt-38)>>4;
+            reg_h_cnt_compressed=(h_cnt-245)>>3;
+            reg_v_cnt_compressed=(v_cnt-18)>>3;
             valid=1;
             bound=0;
         end
-        else if(h_cnt>=280&&h_cnt<360) begin
-            reg_h_cnt_compressed=(h_cnt-280)>>4;
-            reg_v_cnt_compressed=(v_cnt-38)>>4;
+        else if(h_cnt>=300&&h_cnt<340) begin
+            reg_h_cnt_compressed=(h_cnt-300)>>3;
+            reg_v_cnt_compressed=(v_cnt-18)>>3;
             mem_txt_addr=ch[1]+10;
             bound=0;
             valid=1;
         end
-        else if(h_cnt>=390&&h_cnt<470) begin
+        else if(h_cnt>=355&&h_cnt<395) begin
             mem_txt_addr=ch[2]+10;
             bound=0;
-            reg_h_cnt_compressed=(h_cnt-390)>>4;
-            reg_v_cnt_compressed=(v_cnt-38)>>4;
+            reg_h_cnt_compressed=(h_cnt-355)>>3;
+            reg_v_cnt_compressed=(v_cnt-18)>>3;
             valid=1;
         end
 
         end
 
-        if(v_cnt>=28&&v_cnt<160) begin
-        if(h_cnt>=150&&h_cnt<160&&(input_pos==2'd3||input_pos==2'd0)) begin
+        if(v_cnt>=13&&v_cnt<79) begin//left right bound
+        if(h_cnt>=235&&h_cnt<240&&(input_pos==2'd3||input_pos==2'd0)) begin
             mem_txt_addr=0;
             bound=1;
             reg_h_cnt_compressed=0;
             reg_v_cnt_compressed=0;
             valid=1;
         end
-        else if(h_cnt>=260&&h_cnt<270&&(input_pos==2'd0||input_pos==2'd1)) begin
+        else if(h_cnt>=290&&h_cnt<295&&(input_pos==2'd0||input_pos==2'd1)) begin
             mem_txt_addr=0;
             bound=1;
             reg_h_cnt_compressed=0;
             reg_v_cnt_compressed=0;
             valid=1;
         end
-        else if(h_cnt>=370&&h_cnt<380&&(input_pos==2'd1||input_pos==2'd2)) begin
+        else if(h_cnt>=345&&h_cnt<350&&(input_pos==2'd1||input_pos==2'd2)) begin
             mem_txt_addr=0;
             bound=1;
             reg_h_cnt_compressed=0;
             reg_v_cnt_compressed=0;
             valid=1;
         end
-        else if(h_cnt>=480&&h_cnt<490&&(input_pos==2'd2||input_pos==2'd3)) begin
+        else if(h_cnt>=400&&h_cnt<405&&(input_pos==2'd2||input_pos==2'd3)) begin
             mem_txt_addr=0;
             bound=1;
             reg_h_cnt_compressed=0;
@@ -267,110 +276,471 @@ always @* begin
 
         end
 
-        else if(v_cnt>=180&&v_cnt<292) begin
+        else if(v_cnt>=89&&v_cnt<145) begin//score
 
-            if(h_cnt>=100&&h_cnt<180) begin
+            if(h_cnt>=40&&h_cnt<80) begin
             mem_txt_addr=S;
-            reg_h_cnt_compressed=(h_cnt-100)>>4;
-            reg_v_cnt_compressed=(v_cnt-180)>>4;
+            reg_h_cnt_compressed=(h_cnt-40)>>3;
+            reg_v_cnt_compressed=(v_cnt-89)>>3;
             valid=1;
             bound=0;
             end
-            else if(h_cnt>=190&&h_cnt<270) begin
-            reg_h_cnt_compressed=(h_cnt-190)>>4;
-            reg_v_cnt_compressed=(v_cnt-180)>>4;
+            else if(h_cnt>=90&&h_cnt<130) begin
+            reg_h_cnt_compressed=(h_cnt-90)>>3;
+            reg_v_cnt_compressed=(v_cnt-89)>>3;
             mem_txt_addr=C;
             valid=1;
             bound=0;
             end
-            else if(h_cnt>=280&&h_cnt<360) begin
+            else if(h_cnt>=140&&h_cnt<180) begin
             mem_txt_addr=O;
-            reg_h_cnt_compressed=(h_cnt-280)>>4;
-            reg_v_cnt_compressed=(v_cnt-180)>>4;
+            reg_h_cnt_compressed=(h_cnt-140)>>3;
+            reg_v_cnt_compressed=(v_cnt-89)>>3;
             valid=1;
             bound=0;
             end
-            else if(h_cnt>=370&&h_cnt<450)begin
+            else if(h_cnt>=190&&h_cnt<230)begin
             mem_txt_addr=R;
-            reg_h_cnt_compressed=(h_cnt-370)>>4;
-            reg_v_cnt_compressed=(v_cnt-180)>>4;
+            reg_h_cnt_compressed=(h_cnt-190)>>3;
+            reg_v_cnt_compressed=(v_cnt-89)>>3;
             valid=1;
             bound=0;
             end
-            else if(h_cnt>=460&&h_cnt<540)begin
+            else if(h_cnt>=240&&h_cnt<280)begin
             mem_txt_addr=E;
-            reg_h_cnt_compressed=(h_cnt-460)>>4;
-            reg_v_cnt_compressed=(v_cnt-180)>>4;
+            reg_h_cnt_compressed=(h_cnt-240)>>3;
+            reg_v_cnt_compressed=(v_cnt-89)>>3;
             valid=1;
             bound=0;
+            end
+            else if(h_cnt>=360&&h_cnt<400) begin
+                mem_txt_addr=(score/10000);
+                reg_h_cnt_compressed=(h_cnt-360)>>3;
+                reg_v_cnt_compressed=(v_cnt-89)>>3;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=410&&h_cnt<450) begin
+                mem_txt_addr=(score/1000)%10;
+                reg_h_cnt_compressed=(h_cnt-410)>>3;
+                reg_v_cnt_compressed=(v_cnt-89)>>3;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=460&&h_cnt<500) begin
+                mem_txt_addr=(score/100)%10;
+                reg_h_cnt_compressed=(h_cnt-460)>>3;
+                reg_v_cnt_compressed=(v_cnt-89)>>3;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=510&&h_cnt<550) begin
+                mem_txt_addr=(score/10)%10;
+                reg_h_cnt_compressed=(h_cnt-510)>>3;
+                reg_v_cnt_compressed=(v_cnt-89)>>3;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=560&&h_cnt<600) begin
+                mem_txt_addr=(score)%10;
+                reg_h_cnt_compressed=(h_cnt-560)>>3;
+                reg_v_cnt_compressed=(v_cnt-89)>>3;
+                valid=1;
+                bound=0;
             end
 
         end
 
-        else if(v_cnt>=18&&v_cnt<28) begin
+        else if(v_cnt>=8&&v_cnt<13) begin//upper bound
 
-        if(h_cnt>=150&&h_cnt<270&&input_pos==2'd0) begin
+        if(h_cnt>=235&&h_cnt<295&&input_pos==2'd0) begin
             mem_txt_addr=0;
             bound=1;
             reg_h_cnt_compressed=0;
             reg_v_cnt_compressed=0;
             valid=1;
         end
-        else if(h_cnt>=260&&h_cnt<380&&input_pos==2'd1) begin
+        else if(h_cnt>=290&&h_cnt<350&&input_pos==2'd1) begin
             mem_txt_addr=0;
             bound=1;
             reg_h_cnt_compressed=0;
             reg_v_cnt_compressed=0;
             valid=1;
         end
-        else if(h_cnt>=370&&h_cnt<490&&input_pos==2'd2) begin
+        else if(h_cnt>=345&&h_cnt<405&&input_pos==2'd2) begin
             mem_txt_addr=0;
             bound=1;
             reg_h_cnt_compressed=0;
             reg_v_cnt_compressed=0;
             valid=1;
         end
-        else if(h_cnt>=150&&h_cnt<490&&input_pos==2'd3) begin
+        else if(h_cnt>=235&&h_cnt<405&&input_pos==2'd3) begin
             mem_txt_addr=0;
             bound=1;
             reg_h_cnt_compressed=0;
             reg_v_cnt_compressed=0;
             valid=1;
-        end
-
         end
 
-        else if(v_cnt>=160&&v_cnt<170) begin
+        end
+
+        else if(v_cnt>=79&&v_cnt<84) begin//lower bound
 
 
-            if(h_cnt>=150&&h_cnt<270&&input_pos==2'd0) begin
+            if(h_cnt>=235&&h_cnt<295&&input_pos==2'd0) begin
             mem_txt_addr=0;
             bound=1;
             reg_h_cnt_compressed=0;
             reg_v_cnt_compressed=0;
             valid=1;
         end
-        else if(h_cnt>=260&&h_cnt<380&&input_pos==2'd1) begin
+        else if(h_cnt>=290&&h_cnt<350&&input_pos==2'd1) begin
             mem_txt_addr=0;
             bound=1;
             reg_h_cnt_compressed=0;
             reg_v_cnt_compressed=0;
             valid=1;
         end
-        else if(h_cnt>=370&&h_cnt<490&&input_pos==2'd2) begin
+        else if(h_cnt>=345&&h_cnt<405&&input_pos==2'd2) begin
             mem_txt_addr=0;
             bound=1;
             reg_h_cnt_compressed=0;
             reg_v_cnt_compressed=0;
             valid=1;
         end
-        else if(h_cnt>=150&&h_cnt<490&&input_pos==2'd3) begin
+        else if(h_cnt>=235&&h_cnt<405&&input_pos==2'd3) begin
             mem_txt_addr=0;
             bound=1;
             reg_h_cnt_compressed=0;
             reg_v_cnt_compressed=0;
             valid=1;
         end            
+        end
+
+        else if(v_cnt>=150&&v_cnt<178)begin//rank 1
+            if(h_cnt>=140&&h_cnt<160) begin
+            mem_txt_addr=1;
+            reg_h_cnt_compressed=(h_cnt-140)>>2;
+            reg_v_cnt_compressed=(v_cnt-150)>>2;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=240&&h_cnt<260) begin
+            reg_h_cnt_compressed=(h_cnt-240)>>2;
+            reg_v_cnt_compressed=(v_cnt-150)>>2;
+            mem_txt_addr=ch_record[0][0]+10;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=270&&h_cnt<290) begin
+            mem_txt_addr=ch_record[0][1]+10;
+            reg_h_cnt_compressed=(h_cnt-270)>>2;
+            reg_v_cnt_compressed=(v_cnt-150)>>2;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=300&&h_cnt<320)begin
+            mem_txt_addr=ch_record[0][2]+10;
+            reg_h_cnt_compressed=(h_cnt-300)>>2;
+            reg_v_cnt_compressed=(v_cnt-150)>>2;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=360&&h_cnt<380) begin
+                mem_txt_addr=(score_rank[0]/10000);
+                reg_h_cnt_compressed=(h_cnt-360)>>2;
+                reg_v_cnt_compressed=(v_cnt-150)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=390&&h_cnt<410) begin
+                mem_txt_addr=(score_rank[0]/1000)%10;
+                reg_h_cnt_compressed=(h_cnt-390)>>2;
+                reg_v_cnt_compressed=(v_cnt-150)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=420&&h_cnt<440) begin
+                mem_txt_addr=(score_rank[0]/100)%10;
+                reg_h_cnt_compressed=(h_cnt-420)>>2;
+                reg_v_cnt_compressed=(v_cnt-150)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=450&&h_cnt<470) begin
+                mem_txt_addr=(score_rank[0]/10)%10;
+                reg_h_cnt_compressed=(h_cnt-450)>>2;
+                reg_v_cnt_compressed=(v_cnt-150)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=480&&h_cnt<500) begin
+                mem_txt_addr=(score_rank[0])%10;
+                reg_h_cnt_compressed=(h_cnt-480)>>2;
+                reg_v_cnt_compressed=(v_cnt-150)>>2;
+                valid=1;
+                bound=0;
+            end
+        end
+        else if(v_cnt>=183&&v_cnt<211)begin//rank 2
+            if(h_cnt>=140&&h_cnt<160) begin
+            mem_txt_addr=2;
+            reg_h_cnt_compressed=(h_cnt-140)>>2;
+            reg_v_cnt_compressed=(v_cnt-183)>>2;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=240&&h_cnt<260) begin
+            reg_h_cnt_compressed=(h_cnt-240)>>2;
+            reg_v_cnt_compressed=(v_cnt-183)>>2;
+            mem_txt_addr=ch_record[1][0]+10;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=270&&h_cnt<290) begin
+            mem_txt_addr=ch_record[1][1]+10;
+            reg_h_cnt_compressed=(h_cnt-270)>>2;
+            reg_v_cnt_compressed=(v_cnt-183)>>2;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=300&&h_cnt<320)begin
+            mem_txt_addr=ch_record[1][2]+10;
+            reg_h_cnt_compressed=(h_cnt-300)>>2;
+            reg_v_cnt_compressed=(v_cnt-183)>>2;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=360&&h_cnt<380) begin
+                mem_txt_addr=(score_rank[1]/10000);
+                reg_h_cnt_compressed=(h_cnt-360)>>2;
+                reg_v_cnt_compressed=(v_cnt-183)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=390&&h_cnt<410) begin
+                mem_txt_addr=(score_rank[1]/1000)%10;
+                reg_h_cnt_compressed=(h_cnt-390)>>2;
+                reg_v_cnt_compressed=(v_cnt-183)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=420&&h_cnt<440) begin
+                mem_txt_addr=(score_rank[1]/100)%10;
+                reg_h_cnt_compressed=(h_cnt-420)>>2;
+                reg_v_cnt_compressed=(v_cnt-183)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=450&&h_cnt<470) begin
+                mem_txt_addr=(score_rank[1]/10)%10;
+                reg_h_cnt_compressed=(h_cnt-450)>>2;
+                reg_v_cnt_compressed=(v_cnt-183)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=480&&h_cnt<500) begin
+                mem_txt_addr=(score_rank[1])%10;
+                reg_h_cnt_compressed=(h_cnt-480)>>2;
+                reg_v_cnt_compressed=(v_cnt-183)>>2;
+                valid=1;
+                bound=0;
+            end
+        end
+        else if(v_cnt>=216&&v_cnt<244)begin//rank 3
+            if(h_cnt>=140&&h_cnt<160) begin
+            mem_txt_addr=3;
+            reg_h_cnt_compressed=(h_cnt-140)>>2;
+            reg_v_cnt_compressed=(v_cnt-216)>>2;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=240&&h_cnt<260) begin
+            reg_h_cnt_compressed=(h_cnt-240)>>2;
+            reg_v_cnt_compressed=(v_cnt-216)>>2;
+            mem_txt_addr=ch_record[2][0]+10;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=270&&h_cnt<290) begin
+            mem_txt_addr=ch_record[2][1]+10;
+            reg_h_cnt_compressed=(h_cnt-270)>>2;
+            reg_v_cnt_compressed=(v_cnt-216)>>2;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=300&&h_cnt<320)begin
+            mem_txt_addr=ch_record[2][2]+10;
+            reg_h_cnt_compressed=(h_cnt-300)>>2;
+            reg_v_cnt_compressed=(v_cnt-216)>>2;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=360&&h_cnt<380) begin
+                mem_txt_addr=(score_rank[2]/10000);
+                reg_h_cnt_compressed=(h_cnt-360)>>2;
+                reg_v_cnt_compressed=(v_cnt-216)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=390&&h_cnt<410) begin
+                mem_txt_addr=(score_rank[2]/1000)%10;
+                reg_h_cnt_compressed=(h_cnt-390)>>2;
+                reg_v_cnt_compressed=(v_cnt-216)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=420&&h_cnt<440) begin
+                mem_txt_addr=(score_rank[2]/100)%10;
+                reg_h_cnt_compressed=(h_cnt-420)>>2;
+                reg_v_cnt_compressed=(v_cnt-216)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=450&&h_cnt<470) begin
+                mem_txt_addr=(score_rank[2]/10)%10;
+                reg_h_cnt_compressed=(h_cnt-450)>>2;
+                reg_v_cnt_compressed=(v_cnt-216)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=480&&h_cnt<500) begin
+                mem_txt_addr=(score_rank[2])%10;
+                reg_h_cnt_compressed=(h_cnt-480)>>2;
+                reg_v_cnt_compressed=(v_cnt-216)>>2;
+                valid=1;
+                bound=0;
+            end
+        end
+        else if(v_cnt>=249&&v_cnt<277)begin//rank 4
+            if(h_cnt>=140&&h_cnt<160) begin
+            mem_txt_addr=4;
+            reg_h_cnt_compressed=(h_cnt-140)>>2;
+            reg_v_cnt_compressed=(v_cnt-249)>>2;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=240&&h_cnt<260) begin
+            reg_h_cnt_compressed=(h_cnt-240)>>2;
+            reg_v_cnt_compressed=(v_cnt-249)>>2;
+            mem_txt_addr=ch_record[3][0]+10;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=270&&h_cnt<290) begin
+            mem_txt_addr=ch_record[3][1]+10;
+            reg_h_cnt_compressed=(h_cnt-270)>>2;
+            reg_v_cnt_compressed=(v_cnt-249)>>2;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=300&&h_cnt<320)begin
+            mem_txt_addr=ch_record[3][2]+10;
+            reg_h_cnt_compressed=(h_cnt-300)>>2;
+            reg_v_cnt_compressed=(v_cnt-249)>>2;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=360&&h_cnt<380) begin
+                mem_txt_addr=(score_rank[3]/10000);
+                reg_h_cnt_compressed=(h_cnt-360)>>2;
+                reg_v_cnt_compressed=(v_cnt-249)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=390&&h_cnt<410) begin
+                mem_txt_addr=(score_rank[3]/1000)%10;
+                reg_h_cnt_compressed=(h_cnt-390)>>2;
+                reg_v_cnt_compressed=(v_cnt-249)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=420&&h_cnt<440) begin
+                mem_txt_addr=(score_rank[3]/100)%10;
+                reg_h_cnt_compressed=(h_cnt-420)>>2;
+                reg_v_cnt_compressed=(v_cnt-249)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=450&&h_cnt<470) begin
+                mem_txt_addr=(score_rank[3]/10)%10;
+                reg_h_cnt_compressed=(h_cnt-450)>>2;
+                reg_v_cnt_compressed=(v_cnt-249)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=480&&h_cnt<500) begin
+                mem_txt_addr=(score_rank[3])%10;
+                reg_h_cnt_compressed=(h_cnt-480)>>2;
+                reg_v_cnt_compressed=(v_cnt-249)>>2;
+                valid=1;
+                bound=0;
+            end
+        end
+        else if(v_cnt>=282&&v_cnt<310)begin//rank 5
+            if(h_cnt>=140&&h_cnt<160) begin
+            mem_txt_addr=5;
+            reg_h_cnt_compressed=(h_cnt-140)>>2;
+            reg_v_cnt_compressed=(v_cnt-282)>>2;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=240&&h_cnt<260) begin
+            reg_h_cnt_compressed=(h_cnt-240)>>2;
+            reg_v_cnt_compressed=(v_cnt-282)>>2;
+            mem_txt_addr=ch_record[4][0]+10;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=270&&h_cnt<290) begin
+            mem_txt_addr=ch_record[4][1]+10;
+            reg_h_cnt_compressed=(h_cnt-270)>>2;
+            reg_v_cnt_compressed=(v_cnt-282)>>2;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=300&&h_cnt<320)begin
+            mem_txt_addr=ch_record[4][2]+10;
+            reg_h_cnt_compressed=(h_cnt-300)>>2;
+            reg_v_cnt_compressed=(v_cnt-282)>>2;
+            valid=1;
+            bound=0;
+            end
+            else if(h_cnt>=360&&h_cnt<380) begin
+                mem_txt_addr=(score_rank[4]/10000);
+                reg_h_cnt_compressed=(h_cnt-360)>>2;
+                reg_v_cnt_compressed=(v_cnt-282)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=390&&h_cnt<410) begin
+                mem_txt_addr=(score_rank[4]/1000)%10;
+                reg_h_cnt_compressed=(h_cnt-390)>>2;
+                reg_v_cnt_compressed=(v_cnt-282)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=420&&h_cnt<440) begin
+                mem_txt_addr=(score_rank[4]/100)%10;
+                reg_h_cnt_compressed=(h_cnt-420)>>2;
+                reg_v_cnt_compressed=(v_cnt-282)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=450&&h_cnt<470) begin
+                mem_txt_addr=(score_rank[4]/10)%10;
+                reg_h_cnt_compressed=(h_cnt-450)>>2;
+                reg_v_cnt_compressed=(v_cnt-282)>>2;
+                valid=1;
+                bound=0;
+            end
+            else if(h_cnt>=480&&h_cnt<500) begin
+                mem_txt_addr=(score_rank[4])%10;
+                reg_h_cnt_compressed=(h_cnt-480)>>2;
+                reg_v_cnt_compressed=(v_cnt-282)>>2;
+                valid=1;
+                bound=0;
+            end
         end
         end//scene end
 
