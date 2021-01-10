@@ -53,8 +53,8 @@ module output_interface(
     wire [FRAME_DATA_SIZE - 1:0] frame_data;
     assign { frame_data, score_data, level_data } = ingame_data;
     wire laser_active = frame_data[0];
-    wire laser_r = frame_data[4:1];
-    wire laser_quadrant = frame_data[6:5];
+    wire [3:0] laser_r = frame_data[4:1];
+    wire [1:0] laser_quadrant = frame_data[6:5];
     AlienData obj_data[0:OBJ_LIMIT-1];
     generate
 	for(genvar k = 0; k < OBJ_LIMIT; k++) begin
@@ -83,12 +83,17 @@ module output_interface(
 	
 	wire clk_25MHz;
 	clock_divider_25MHz(clk_25MHz, clk);
+	wire clk_30FPS;
+	clock_divider_half(clk_30FPS, clk_25MHz);
+	wire clk_frame = clk_25MHz;
+	
+	
     wire valid;
     wire [9:0] h_cnt; //640
     wire [9:0] v_cnt;  //480
     
     vga_controller vga_inst(
-      .pclk(clk_25MHz),
+      .pclk(clk_frame),
       .reset(rst),
       .hsync(hsync),
       .vsync(vsync),
@@ -99,7 +104,7 @@ module output_interface(
 	
 	wire [11:0] pixel_bg;
 	layer_background(
-	.clk(clk_25MHz),
+	.clk(clk_frame),
 	.h_cnt(h_cnt),
 	.v_cnt(v_cnt),
 	.pixel(pixel_bg)
@@ -109,7 +114,8 @@ module output_interface(
 	logic obj_layer_valid;
 	logic [11:0] obj_pixel_out;
 	layer_object #(.QUADRANT(QUADRANT))(
-	.clk_25MHz(clk_25MHz),
+	.clk_100MHz(clk),
+	.clk_frame(clk_frame),
 	.obj_data(obj_data),
 	.h_cnt(h_cnt),
 	.v_cnt(v_cnt),
@@ -121,7 +127,7 @@ module output_interface(
 	logic [11:0] laser_pixel_out;
 	
 	layer_laser #(.QUADRANT(QUADRANT))(
-	.clk(clk_25MHz),
+	.clk(clk_frame),
 	.laser_active(laser_active),
 	.laser_r(laser_r),
 	.laser_quadrant(laser_quadrant),
@@ -131,8 +137,7 @@ module output_interface(
 	.pixel_out(laser_pixel_out)
 	);
 	
-    
-    logic txt_valid;
+	logic txt_valid;
     logic [11:0] txt_pixel_out;
     logic [STRING_SIZE*5-1:0] name_stream={name[4],name[3],name[2],name[1],name[0]};
     logic [SCORE_SIZE*5-1:0] score_stream={score[4],score[3],score[2],score[1],score[0]};
@@ -206,5 +211,16 @@ end
 assign next_num = num + 1'b1;
 assign clk1 = num[1];
 
+endmodule
+
+module clock_divider_half(clk1, clk);
+input clk;
+output clk1;
+
+reg num;
+always @(posedge clk) begin
+    num <= num + 1;
+end
+assign clk1 = num;
 endmodule
 

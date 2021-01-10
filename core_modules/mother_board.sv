@@ -34,13 +34,13 @@ module mother_board(
     output REQ0,
     output [15:0] led,
     output [3:0] DIGIT,
-    output [6:0] DISPLAY
+    output [6:0] DISPLAY,
     
-//    output [3:0] vgaRed,
-//    output [3:0] vgaGreen,
-//    output [3:0] vgaBlue,
-//    output hsync,
-//    output vsync
+    output [3:0] vgaRed,
+    output [3:0] vgaGreen,
+    output [3:0] vgaBlue,
+    output hsync,
+    output vsync
     
     );
     
@@ -60,19 +60,15 @@ module mother_board(
     );
     wire packet_valid = 1;
     
-    wire ctrl_req;
-    wire interface_ack;
-    wire [5:0] ctrl_out;
-    sender #(.n(MESSAGE_SIZE))
+    /*sender #(.n(MESSAGE_SIZE))
     (
     .clk_sender(clk),
-    .wire_ack(interface_ack),
+    .wire_ack(ACK0),
     .wire_data_in(datagram),
     .rst(rst),
-    .reg_data_out(ctrl_out),
-    .reg_req(ctrl_req)
+    .reg_data_out(DOUT0),
+    .reg_req(REQ0)
     );
-    /*
     wire [MESSAGE_SIZE-1:0] recv_data;
     receiver #(.n(MESSAGE_SIZE))
     (
@@ -84,7 +80,7 @@ module mother_board(
     .reg_valid(packet_valid)
     );
     */
-    /*
+    
     reg [MESSAGE_SIZE-1:0] reg_datagram;
     always @(posedge clk) begin
         if(rst) reg_datagram <= 0;
@@ -101,6 +97,6 @@ module mother_board(
     .hsync(hsync),
     .vsync(vsync)
     );
-    */
+    
     
 endmodule

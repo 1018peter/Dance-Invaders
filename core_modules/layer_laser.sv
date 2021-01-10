@@ -34,19 +34,25 @@ module layer_laser(
     parameter VGA_XRES = 640;
     parameter VGA_YRES = 480;
     wire [9:0] laser_end_y = VGA_YRES - 80 - laser_r * 15;
+    logic in_beam;
+    logic in_beam_center;
 	always @* begin
-	   pixel_out = 12'h4_8_F;
-	   
+	   if(in_beam_center) pixel_out = 12'h0_C_F;
+	   else if(in_beam) pixel_out = 12'h2_8_F;
+	   else pixel_out = 12'h2_4_F;
+       in_beam_center = ((v_cnt >= laser_end_y && v_cnt <= laser_end_y + 40 - 2 * laser_r
+	   && h_cnt <= VGA_XRES / 2 + v_cnt / 8 && h_cnt >= VGA_XRES / 2 - v_cnt / 8));
+       in_beam = ((v_cnt >= laser_end_y && v_cnt <= laser_end_y + 40 - 2 * laser_r
+	   && h_cnt <= VGA_XRES / 2 + v_cnt / 8 + 20 && h_cnt >= VGA_XRES / 2 - v_cnt / 8 - 20));
 	end
 	
-	always @(posedge clk) begin
-	   if(laser_quadrant == QUADRANT && laser_active && ((v_cnt >= laser_end_y
-	   && h_cnt <= VGA_XRES / 2 + laser_end_y / 4 + 20 && h_cnt >= VGA_XRES / 2 - laser_end_y / 4 - 20) ||
-	   h_cnt <= 20 || h_cnt >= VGA_XRES - 20 || v_cnt >= VGA_YRES - 20 || v_cnt <= 20)) begin
+	always @(*) begin
+	   if(laser_quadrant == QUADRANT && laser_active && (in_beam ||
+	   (h_cnt <= 20 - laser_r || h_cnt >= VGA_XRES - 20 + laser_r || v_cnt >= VGA_YRES - 20 + laser_r || v_cnt <= 20 - laser_r))) begin
 	       // Set union of the laser itself and a square frame around the screen.
-	       layer_valid <= 1;
+	       layer_valid = 1;
 	   end
-	   else layer_valid <= 0;
+	   else layer_valid = 0;
 	end
 	
 endmodule

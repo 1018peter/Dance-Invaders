@@ -40,6 +40,12 @@ module control_core(
     .clk(clk),
     .clk_div(clk_main)
     );
+    wire clk_dsp;
+    clock_divider_two_power #(.n(4))(
+    .clk(clk),
+    .clk_div(clk_dsp)
+    );
+    
     wire clk_frame;
     wire clk_spawn;
     wire [1:0] clock_select;
@@ -145,6 +151,7 @@ module control_core(
     wire [3:0] object_count;
     event_core(
     .clk_frame(clk_frame),
+    .clk_dsp(clk_dsp),
     .clk_sort(clk_main),
     .rst(rst || wire_game_start),
     .en(cur_state == SCENE_INGAME),
@@ -229,7 +236,7 @@ module control_core(
     seven_segment(clk, {digit[0], digit[1], digit[2], digit[3]}, DIGIT, DISPLAY);
     assign led[STATE_SIZE - 1:0] = cur_state;
     assign led[15:8] = event_buffer;
-    assign led[7:6] = frame_data[17:16];
+    assign led[6] = frame_data[0];
     
 endmodule
 
@@ -306,39 +313,39 @@ module alien_generator(
         case(cur_level)
         0: begin
         rand_type = type_distribution_0[random_num[0]];
-        rand_deg = deg_distribution_0[random_num[1:0]];
+        rand_deg = 45;//deg_distribution_0[random_num[1:0]];
         end
         1: begin
         rand_type = type_distribution_1[random_num[1:0]];
-        rand_deg = deg_distribution_0[random_num[1:0]];       
+        rand_deg = 45;//deg_distribution_0[random_num[1:0]];       
         end
         2: begin
         rand_type = type_distribution_2[random_num[1:0]];
-        rand_deg = deg_distribution_0[random_num[1:0]];        
+        rand_deg = 45;//deg_distribution_0[random_num[1:0]];        
         end
         3: begin
         rand_type = type_distribution_3[random_num[2:0]];
-        rand_deg = deg_distribution_1[random_num[2:0]];        
+        rand_deg = 45;//deg_distribution_1[random_num[2:0]];        
         end
         4: begin
         rand_type = type_distribution_4[random_num[1:0]];
-        rand_deg = deg_distribution_1[random_num[2:0]];        
+        rand_deg = 45;//deg_distribution_1[random_num[2:0]];        
         end
         5: begin
         rand_type = type_distribution_5[random_num[2:0]];
-        rand_deg = deg_distribution_2[random_num[3:0]];        
+        rand_deg = 45;//deg_distribution_2[random_num[3:0]];        
         end
         6: begin
         rand_type = type_distribution_6[random_num[0]];
-        rand_deg = deg_distribution_1[random_num[2:0]];        
+        rand_deg = 45;//deg_distribution_1[random_num[2:0]];        
         end
         7: begin
         rand_type = type_distribution_4[random_num[1:0]];
-        rand_deg = deg_distribution_2[random_num[3:0]];        
+        rand_deg = 45;//deg_distribution_2[random_num[3:0]];        
         end
         default: begin
         rand_type = type_distribution_5[random_num[2:0]];
-        rand_deg = deg_distribution_2[random_num[3:0]];        
+        rand_deg = 45;//deg_distribution_2[random_num[3:0]];        
         end
         endcase
     end

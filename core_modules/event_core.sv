@@ -23,6 +23,7 @@
 
 module event_core(
     input clk_frame, // Base frequency of around 30 Hz, and up to 60 Hz. Note: Any clock switching may cause frame glitches and should be handled with care.
+    input clk_dsp,
     input clk_sort, // Operating frequency of the sorter
     input rst,
     input en,
@@ -79,35 +80,64 @@ module event_core(
         end
     end
     
-    wire [9+14:0] projected_x [0:OBJ_LIMIT-1];
-    wire [8:0] mapped_theta [0:OBJ_LIMIT-1];
+    // Registered because Vivado does not like me not doing it.
+    logic [3:0] r_buffer [0:OBJ_LIMIT-1];
+    logic [9+14:0] result_buffer [0:OBJ_LIMIT-1];
+    logic [9:0] projected_x [0:OBJ_LIMIT-1];
+    logic [9:0] y_buffer [0:OBJ_LIMIT-1];
+    logic [9+14:0] product_buffer [0:OBJ_LIMIT-1];
+    logic [9+14:0] diff_buffer [0:OBJ_LIMIT-1];
+    logic [9+14:0] reg_product [0:OBJ_LIMIT-1];
+    logic [13:0] reg_sine [0:OBJ_LIMIT-1];
+    logic [13:0] sine_buffer [0:OBJ_LIMIT-1];
+    logic [9:0] reg_dist [0:OBJ_LIMIT-1];
+    logic [9:0] dist_buffer [0:OBJ_LIMIT-1];
+    logic [8:0] mapped_theta [0:OBJ_LIMIT-1];
+    logic [OBJ_LIMIT-1:0] out_of_bound;
+    parameter X_UNDERFLOW_GUARD = 1280000;
+    always @(posedge clk_dsp) begin
+        for(int k = 0; k < OBJ_LIMIT; k++) begin
+            r_buffer[k] <= obj_arr_sorted[k]._r;
+            mapped_theta[k] <= obj_arr_sorted[k]._theta % 90;
+            reg_sine[k] <=  mapped_theta[k] < 45 ? 
+        sin[45 - mapped_theta[k]] 
+        : sin[mapped_theta[k] - 45];
+            sine_buffer[k] <= reg_sine[k];
+            reg_dist[k] <= 640 + r_buffer[k] * 10;
+            dist_buffer[k] <= reg_dist[k];
+            reg_product[k] <= sine_buffer[k] * dist_buffer[k];
+            product_buffer[k] <= reg_product[k];
+            out_of_bound[k] <= mapped_theta[k] < 45 ? (product_buffer[k] >= 3200001 + X_UNDERFLOW_GUARD) : 
+            (product_buffer[k] >= 3200000 + X_UNDERFLOW_GUARD);
+            diff_buffer[k] <= (mapped_theta[k] < 45 ? 3200000 + X_UNDERFLOW_GUARD - product_buffer[k] : 3200000 + X_UNDERFLOW_GUARD + product_buffer[k]);
+            result_buffer[k] <= diff_buffer[k] / 10000;
+            projected_x[k] <= result_buffer[k][9:0];
+            y_buffer[k] <= 480 - 80 - r_buffer[k] * 15;
+        end
+    end
+    
     // Collapse the frame into the format of { {Alien Data (Sorted by distance, headed by the closest alien}, {Laser Metadata}}
 	assign frame_data[0] = laser._active;
 	assign frame_data[4:1] = laser._r;
-	assign frame_data[6:5] = dir; // Quadrant
+	assign frame_data[6:5] = laser._deg / 90; // Quadrant
 	generate
 	for(genvar k = 0; k < OBJ_LIMIT; k++) begin
 	    localparam startpos = 7 + k * $size(AlienData);
-        assign frame_data[startpos] = obj_arr_sorted[k]._state != INACTIVE;
+        assign frame_data[startpos] = obj_arr_sorted[k]._state != INACTIVE && !out_of_bound[k];
         assign frame_data[startpos+2 :startpos+1] = obj_arr_sorted[k]._type;
         assign frame_data[startpos+4 :startpos+3] = obj_arr_sorted[k]._frame_num;
         assign frame_data[startpos+8 :startpos+5] = obj_arr_sorted[k]._r;
         assign frame_data[startpos+10:startpos+9] = obj_arr_sorted[k]._theta / 90; // (0~359)/90 -> (0~3).
         
-        assign mapped_theta[k] = obj_arr_sorted[k]._theta % 90;
-        assign projected_x[k] = 3200000 + (mapped_theta[k] < 45 ? 
-        -sin[45 - mapped_theta[k]] 
-        : sin[mapped_theta[k] - 45]) * (640 + obj_arr_sorted[k]._r * 10);
-        
         // x pos
-        assign frame_data[startpos+20:startpos+11] = projected_x[k] / 10000; // (0~640. Validation is done in the peripheral) 
+        assign frame_data[startpos+20:startpos+11] = projected_x[k]; // (0~640. Validation is done in the peripheral) 
         // y pos
-        assign frame_data[startpos+30:startpos+21] = 480 - 80 - obj_arr_sorted[k]._r * 15;
+        assign frame_data[startpos+30:startpos+21] = y_buffer[k];
         
         // deriv left
         assign frame_data[startpos+32:startpos+31] = 
-        mapped_theta[k] < 33 ? 3
-        : mapped_theta[k] < 37 ? 2
+        mapped_theta[k] < 30 ? 3
+        : mapped_theta[k] < 35 ? 2
         : mapped_theta[k] < 40 ? 1
         : mapped_theta[k] < 50 ? 0
         : mapped_theta[k] < 55 ? 1
@@ -115,11 +145,11 @@ module event_core(
         
         // deriv right
         assign frame_data[startpos+34:startpos+33] = 
-        mapped_theta[k] > 57 ? 3
-        : mapped_theta[k] > 53 ? 2
-        : mapped_theta[k] > 50 ? 1
-        : mapped_theta[k] > 40 ? 0
-        : mapped_theta[k] > 35 ? 1
+        mapped_theta[k] > 55 ? 3
+        : mapped_theta[k] > 50 ? 2
+        : mapped_theta[k] > 40 ? 1
+        : mapped_theta[k] > 35 ? 0
+        : mapped_theta[k] > 30 ? 1
         : 2 ;
         
         
@@ -145,14 +175,14 @@ module event_core(
             for(int i = 0; i < OBJ_LIMIT; i++) begin
                 case(obj_arr[i]._state)
                 ACTIVE: begin // Object is active. Move.
-                    if (frame_onepulse[7]) begin // Move forward once every 128 frames.
+                    if (frame_onepulse[6]) begin // Move forward once every 128 frames.
                         obj_arr[i]._r <= obj_arr[i]._r - 1;
                         
                     end
                     
                     if(frame_onepulse[4]) obj_arr[i]._frame_num[0] <= obj_arr[i]._frame_num[0] ^ 1;
                     
-                    case(obj_arr[i]._type)
+                    if(frame_ctr[0]) case(obj_arr[i]._type)
                     TYPE0: begin // Type 0: Basic alien. Circles in a simple pattern.
                         // Movement behavior description.
                         if (frame_ctr[6]) begin // Move counterclockwise.
@@ -213,9 +243,9 @@ module event_core(
             end
             
             if(laser._active) begin
-                if(laser._r != 15) for(int i = 0; i < OBJ_LIMIT; i++) begin
+                for(int i = 0; i < OBJ_LIMIT; i++) begin
                     // Test collision with priority encoding.
-                    if(obj_arr[i]._state == ACTIVE && obj_arr[i]._r == laser._r
+                    if(obj_arr[i]._state == ACTIVE && obj_arr[i]._r <= laser._r + 1
                     && obj_arr[i]._theta <= laser._deg + LSR_WIDTH
                     && obj_arr[i]._theta >= laser._deg - LSR_WIDTH) begin 
                         if(obj_arr[i]._hp == 1) begin
@@ -252,28 +282,29 @@ module event_core(
         next_score = score;
         next_laser = laser;
         if(laser._active) begin // Move laser, keeping the same orientation.
-                if(frame_ctr[2]) next_laser._r = laser._r + 1;
-                if(laser._r == 15) next_laser._active = 0;
-                else for(int i = 0; i < OBJ_LIMIT; i++) begin
-                    // Test collision with priority encoding.
-                    if(obj_arr[i]._state == ACTIVE && obj_arr[i]._r == laser._r
-                    && obj_arr[i]._theta <= laser._deg + LSR_WIDTH
-                    && obj_arr[i]._theta >= laser._deg - LSR_WIDTH) begin 
-                        if(obj_arr[i]._hp == 1) begin
-                            next_score = score + 100;
-                        end
-                        else begin 
-                            next_score = score + 10;
-                        end
-                        next_laser._active = 0;
-                        //break;
+            next_laser._r = laser._r + 1;
+            
+            if(laser._r == 15) next_laser._active = 0;
+            else for(int i = 0; i < OBJ_LIMIT; i++) begin
+                // Test collision with priority encoding.
+                if(obj_arr[i]._state == ACTIVE && obj_arr[i]._r == laser._r
+                && obj_arr[i]._theta <= laser._deg + LSR_WIDTH
+                && obj_arr[i]._theta >= laser._deg - LSR_WIDTH) begin 
+                    if(obj_arr[i]._hp == 1) begin
+                        next_score = score + 100;
                     end
+                    else begin 
+                        next_score = score + 10;
+                    end
+                    next_laser._active = 0;
+                    //break;
                 end
-            end 
-        else begin // Spawning a new laser if requested.
+            end
+        end 
+        else if(spawn_laser) begin // Spawning a new laser if requested.
             next_laser._r = 0;
             next_laser._deg = dir * 90 + 45;
-            next_laser._active = spawn_laser;
+            next_laser._active = 1;
         end
     end
     
@@ -286,8 +317,8 @@ module odd_even_merge_sorter(
     output Alien ordered[0: OBJ_LIMIT-1]
 );
 
-    logic [4:0] sort_layer [0:15][0:OBJ_LIMIT-1];
-    logic [3:0] key_layer [0:15][0:OBJ_LIMIT-1];
+    logic [4:0] sort_layer [0:10][0:OBJ_LIMIT-1];
+    logic [3:0] key_layer [0:10][0:OBJ_LIMIT-1];
     always @* begin
         for(int i = 0; i < OBJ_LIMIT; i++) begin
             sort_layer[0][i] = i;
@@ -297,7 +328,7 @@ module odd_even_merge_sorter(
     
     always @(posedge clk) begin
         for(int i = 0; i < OBJ_LIMIT; i++) begin
-            ordered[i] <= unordered[sort_layer[15][i]];
+            ordered[i] <= unordered[sort_layer[10][i]];
         end
     end
     
@@ -310,14 +341,6 @@ alien_comparator(key_layer[0][8], key_layer[0][9], sort_layer[0][8],sort_layer[0
 alien_comparator(key_layer[0][10], key_layer[0][11], sort_layer[0][10],sort_layer[0][11], key_layer[1][10], key_layer[1][11], sort_layer[1][10], sort_layer[1][11]);
 alien_comparator(key_layer[0][12], key_layer[0][13], sort_layer[0][12],sort_layer[0][13], key_layer[1][12], key_layer[1][13], sort_layer[1][12], sort_layer[1][13]);
 alien_comparator(key_layer[0][14], key_layer[0][15], sort_layer[0][14],sort_layer[0][15], key_layer[1][14], key_layer[1][15], sort_layer[1][14], sort_layer[1][15]);
-alien_comparator(key_layer[0][16], key_layer[0][17], sort_layer[0][16],sort_layer[0][17], key_layer[1][16], key_layer[1][17], sort_layer[1][16], sort_layer[1][17]);
-alien_comparator(key_layer[0][18], key_layer[0][19], sort_layer[0][18],sort_layer[0][19], key_layer[1][18], key_layer[1][19], sort_layer[1][18], sort_layer[1][19]);
-alien_comparator(key_layer[0][20], key_layer[0][21], sort_layer[0][20],sort_layer[0][21], key_layer[1][20], key_layer[1][21], sort_layer[1][20], sort_layer[1][21]);
-alien_comparator(key_layer[0][22], key_layer[0][23], sort_layer[0][22],sort_layer[0][23], key_layer[1][22], key_layer[1][23], sort_layer[1][22], sort_layer[1][23]);
-alien_comparator(key_layer[0][24], key_layer[0][25], sort_layer[0][24],sort_layer[0][25], key_layer[1][24], key_layer[1][25], sort_layer[1][24], sort_layer[1][25]);
-alien_comparator(key_layer[0][26], key_layer[0][27], sort_layer[0][26],sort_layer[0][27], key_layer[1][26], key_layer[1][27], sort_layer[1][26], sort_layer[1][27]);
-alien_comparator(key_layer[0][28], key_layer[0][29], sort_layer[0][28],sort_layer[0][29], key_layer[1][28], key_layer[1][29], sort_layer[1][28], sort_layer[1][29]);
-alien_comparator(key_layer[0][30], key_layer[0][31], sort_layer[0][30],sort_layer[0][31], key_layer[1][30], key_layer[1][31], sort_layer[1][30], sort_layer[1][31]);
 alien_comparator(key_layer[1][0], key_layer[1][2], sort_layer[1][0],sort_layer[1][2], key_layer[2][0], key_layer[2][2], sort_layer[2][0], sort_layer[2][2]);
 alien_comparator(key_layer[1][1], key_layer[1][3], sort_layer[1][1],sort_layer[1][3], key_layer[2][1], key_layer[2][3], sort_layer[2][1], sort_layer[2][3]);
 alien_comparator(key_layer[1][4], key_layer[1][6], sort_layer[1][4],sort_layer[1][6], key_layer[2][4], key_layer[2][6], sort_layer[2][4], sort_layer[2][6]);
@@ -326,22 +349,10 @@ alien_comparator(key_layer[1][8], key_layer[1][10], sort_layer[1][8],sort_layer[
 alien_comparator(key_layer[1][9], key_layer[1][11], sort_layer[1][9],sort_layer[1][11], key_layer[2][9], key_layer[2][11], sort_layer[2][9], sort_layer[2][11]);
 alien_comparator(key_layer[1][12], key_layer[1][14], sort_layer[1][12],sort_layer[1][14], key_layer[2][12], key_layer[2][14], sort_layer[2][12], sort_layer[2][14]);
 alien_comparator(key_layer[1][13], key_layer[1][15], sort_layer[1][13],sort_layer[1][15], key_layer[2][13], key_layer[2][15], sort_layer[2][13], sort_layer[2][15]);
-alien_comparator(key_layer[1][16], key_layer[1][18], sort_layer[1][16],sort_layer[1][18], key_layer[2][16], key_layer[2][18], sort_layer[2][16], sort_layer[2][18]);
-alien_comparator(key_layer[1][17], key_layer[1][19], sort_layer[1][17],sort_layer[1][19], key_layer[2][17], key_layer[2][19], sort_layer[2][17], sort_layer[2][19]);
-alien_comparator(key_layer[1][20], key_layer[1][22], sort_layer[1][20],sort_layer[1][22], key_layer[2][20], key_layer[2][22], sort_layer[2][20], sort_layer[2][22]);
-alien_comparator(key_layer[1][21], key_layer[1][23], sort_layer[1][21],sort_layer[1][23], key_layer[2][21], key_layer[2][23], sort_layer[2][21], sort_layer[2][23]);
-alien_comparator(key_layer[1][24], key_layer[1][26], sort_layer[1][24],sort_layer[1][26], key_layer[2][24], key_layer[2][26], sort_layer[2][24], sort_layer[2][26]);
-alien_comparator(key_layer[1][25], key_layer[1][27], sort_layer[1][25],sort_layer[1][27], key_layer[2][25], key_layer[2][27], sort_layer[2][25], sort_layer[2][27]);
-alien_comparator(key_layer[1][28], key_layer[1][30], sort_layer[1][28],sort_layer[1][30], key_layer[2][28], key_layer[2][30], sort_layer[2][28], sort_layer[2][30]);
-alien_comparator(key_layer[1][29], key_layer[1][31], sort_layer[1][29],sort_layer[1][31], key_layer[2][29], key_layer[2][31], sort_layer[2][29], sort_layer[2][31]);
 alien_comparator(key_layer[2][1], key_layer[2][2], sort_layer[2][1],sort_layer[2][2], key_layer[3][1], key_layer[3][2], sort_layer[3][1], sort_layer[3][2]);
 alien_comparator(key_layer[2][5], key_layer[2][6], sort_layer[2][5],sort_layer[2][6], key_layer[3][5], key_layer[3][6], sort_layer[3][5], sort_layer[3][6]);
 alien_comparator(key_layer[2][9], key_layer[2][10], sort_layer[2][9],sort_layer[2][10], key_layer[3][9], key_layer[3][10], sort_layer[3][9], sort_layer[3][10]);
 alien_comparator(key_layer[2][13], key_layer[2][14], sort_layer[2][13],sort_layer[2][14], key_layer[3][13], key_layer[3][14], sort_layer[3][13], sort_layer[3][14]);
-alien_comparator(key_layer[2][17], key_layer[2][18], sort_layer[2][17],sort_layer[2][18], key_layer[3][17], key_layer[3][18], sort_layer[3][17], sort_layer[3][18]);
-alien_comparator(key_layer[2][21], key_layer[2][22], sort_layer[2][21],sort_layer[2][22], key_layer[3][21], key_layer[3][22], sort_layer[3][21], sort_layer[3][22]);
-alien_comparator(key_layer[2][25], key_layer[2][26], sort_layer[2][25],sort_layer[2][26], key_layer[3][25], key_layer[3][26], sort_layer[3][25], sort_layer[3][26]);
-alien_comparator(key_layer[2][29], key_layer[2][30], sort_layer[2][29],sort_layer[2][30], key_layer[3][29], key_layer[3][30], sort_layer[3][29], sort_layer[3][30]);
 assign sort_layer[3][0] = sort_layer[2][0];
 assign key_layer[3][0] = key_layer[2][0];
 assign sort_layer[3][3] = sort_layer[2][3];
@@ -358,22 +369,6 @@ assign sort_layer[3][12] = sort_layer[2][12];
 assign key_layer[3][12] = key_layer[2][12];
 assign sort_layer[3][15] = sort_layer[2][15];
 assign key_layer[3][15] = key_layer[2][15];
-assign sort_layer[3][16] = sort_layer[2][16];
-assign key_layer[3][16] = key_layer[2][16];
-assign sort_layer[3][19] = sort_layer[2][19];
-assign key_layer[3][19] = key_layer[2][19];
-assign sort_layer[3][20] = sort_layer[2][20];
-assign key_layer[3][20] = key_layer[2][20];
-assign sort_layer[3][23] = sort_layer[2][23];
-assign key_layer[3][23] = key_layer[2][23];
-assign sort_layer[3][24] = sort_layer[2][24];
-assign key_layer[3][24] = key_layer[2][24];
-assign sort_layer[3][27] = sort_layer[2][27];
-assign key_layer[3][27] = key_layer[2][27];
-assign sort_layer[3][28] = sort_layer[2][28];
-assign key_layer[3][28] = key_layer[2][28];
-assign sort_layer[3][31] = sort_layer[2][31];
-assign key_layer[3][31] = key_layer[2][31];
 alien_comparator(key_layer[3][0], key_layer[3][4], sort_layer[3][0],sort_layer[3][4], key_layer[4][0], key_layer[4][4], sort_layer[4][0], sort_layer[4][4]);
 alien_comparator(key_layer[3][1], key_layer[3][5], sort_layer[3][1],sort_layer[3][5], key_layer[4][1], key_layer[4][5], sort_layer[4][1], sort_layer[4][5]);
 alien_comparator(key_layer[3][2], key_layer[3][6], sort_layer[3][2],sort_layer[3][6], key_layer[4][2], key_layer[4][6], sort_layer[4][2], sort_layer[4][6]);
@@ -382,22 +377,10 @@ alien_comparator(key_layer[3][8], key_layer[3][12], sort_layer[3][8],sort_layer[
 alien_comparator(key_layer[3][9], key_layer[3][13], sort_layer[3][9],sort_layer[3][13], key_layer[4][9], key_layer[4][13], sort_layer[4][9], sort_layer[4][13]);
 alien_comparator(key_layer[3][10], key_layer[3][14], sort_layer[3][10],sort_layer[3][14], key_layer[4][10], key_layer[4][14], sort_layer[4][10], sort_layer[4][14]);
 alien_comparator(key_layer[3][11], key_layer[3][15], sort_layer[3][11],sort_layer[3][15], key_layer[4][11], key_layer[4][15], sort_layer[4][11], sort_layer[4][15]);
-alien_comparator(key_layer[3][16], key_layer[3][20], sort_layer[3][16],sort_layer[3][20], key_layer[4][16], key_layer[4][20], sort_layer[4][16], sort_layer[4][20]);
-alien_comparator(key_layer[3][17], key_layer[3][21], sort_layer[3][17],sort_layer[3][21], key_layer[4][17], key_layer[4][21], sort_layer[4][17], sort_layer[4][21]);
-alien_comparator(key_layer[3][18], key_layer[3][22], sort_layer[3][18],sort_layer[3][22], key_layer[4][18], key_layer[4][22], sort_layer[4][18], sort_layer[4][22]);
-alien_comparator(key_layer[3][19], key_layer[3][23], sort_layer[3][19],sort_layer[3][23], key_layer[4][19], key_layer[4][23], sort_layer[4][19], sort_layer[4][23]);
-alien_comparator(key_layer[3][24], key_layer[3][28], sort_layer[3][24],sort_layer[3][28], key_layer[4][24], key_layer[4][28], sort_layer[4][24], sort_layer[4][28]);
-alien_comparator(key_layer[3][25], key_layer[3][29], sort_layer[3][25],sort_layer[3][29], key_layer[4][25], key_layer[4][29], sort_layer[4][25], sort_layer[4][29]);
-alien_comparator(key_layer[3][26], key_layer[3][30], sort_layer[3][26],sort_layer[3][30], key_layer[4][26], key_layer[4][30], sort_layer[4][26], sort_layer[4][30]);
-alien_comparator(key_layer[3][27], key_layer[3][31], sort_layer[3][27],sort_layer[3][31], key_layer[4][27], key_layer[4][31], sort_layer[4][27], sort_layer[4][31]);
 alien_comparator(key_layer[4][2], key_layer[4][4], sort_layer[4][2],sort_layer[4][4], key_layer[5][2], key_layer[5][4], sort_layer[5][2], sort_layer[5][4]);
 alien_comparator(key_layer[4][3], key_layer[4][5], sort_layer[4][3],sort_layer[4][5], key_layer[5][3], key_layer[5][5], sort_layer[5][3], sort_layer[5][5]);
 alien_comparator(key_layer[4][10], key_layer[4][12], sort_layer[4][10],sort_layer[4][12], key_layer[5][10], key_layer[5][12], sort_layer[5][10], sort_layer[5][12]);
 alien_comparator(key_layer[4][11], key_layer[4][13], sort_layer[4][11],sort_layer[4][13], key_layer[5][11], key_layer[5][13], sort_layer[5][11], sort_layer[5][13]);
-alien_comparator(key_layer[4][18], key_layer[4][20], sort_layer[4][18],sort_layer[4][20], key_layer[5][18], key_layer[5][20], sort_layer[5][18], sort_layer[5][20]);
-alien_comparator(key_layer[4][19], key_layer[4][21], sort_layer[4][19],sort_layer[4][21], key_layer[5][19], key_layer[5][21], sort_layer[5][19], sort_layer[5][21]);
-alien_comparator(key_layer[4][26], key_layer[4][28], sort_layer[4][26],sort_layer[4][28], key_layer[5][26], key_layer[5][28], sort_layer[5][26], sort_layer[5][28]);
-alien_comparator(key_layer[4][27], key_layer[4][29], sort_layer[4][27],sort_layer[4][29], key_layer[5][27], key_layer[5][29], sort_layer[5][27], sort_layer[5][29]);
 assign sort_layer[5][0] = sort_layer[4][0];
 assign key_layer[5][0] = key_layer[4][0];
 assign sort_layer[5][1] = sort_layer[4][1];
@@ -414,34 +397,12 @@ assign sort_layer[5][14] = sort_layer[4][14];
 assign key_layer[5][14] = key_layer[4][14];
 assign sort_layer[5][15] = sort_layer[4][15];
 assign key_layer[5][15] = key_layer[4][15];
-assign sort_layer[5][16] = sort_layer[4][16];
-assign key_layer[5][16] = key_layer[4][16];
-assign sort_layer[5][17] = sort_layer[4][17];
-assign key_layer[5][17] = key_layer[4][17];
-assign sort_layer[5][22] = sort_layer[4][22];
-assign key_layer[5][22] = key_layer[4][22];
-assign sort_layer[5][23] = sort_layer[4][23];
-assign key_layer[5][23] = key_layer[4][23];
-assign sort_layer[5][24] = sort_layer[4][24];
-assign key_layer[5][24] = key_layer[4][24];
-assign sort_layer[5][25] = sort_layer[4][25];
-assign key_layer[5][25] = key_layer[4][25];
-assign sort_layer[5][30] = sort_layer[4][30];
-assign key_layer[5][30] = key_layer[4][30];
-assign sort_layer[5][31] = sort_layer[4][31];
-assign key_layer[5][31] = key_layer[4][31];
 alien_comparator(key_layer[5][1], key_layer[5][2], sort_layer[5][1],sort_layer[5][2], key_layer[6][1], key_layer[6][2], sort_layer[6][1], sort_layer[6][2]);
 alien_comparator(key_layer[5][3], key_layer[5][4], sort_layer[5][3],sort_layer[5][4], key_layer[6][3], key_layer[6][4], sort_layer[6][3], sort_layer[6][4]);
 alien_comparator(key_layer[5][5], key_layer[5][6], sort_layer[5][5],sort_layer[5][6], key_layer[6][5], key_layer[6][6], sort_layer[6][5], sort_layer[6][6]);
 alien_comparator(key_layer[5][9], key_layer[5][10], sort_layer[5][9],sort_layer[5][10], key_layer[6][9], key_layer[6][10], sort_layer[6][9], sort_layer[6][10]);
 alien_comparator(key_layer[5][11], key_layer[5][12], sort_layer[5][11],sort_layer[5][12], key_layer[6][11], key_layer[6][12], sort_layer[6][11], sort_layer[6][12]);
 alien_comparator(key_layer[5][13], key_layer[5][14], sort_layer[5][13],sort_layer[5][14], key_layer[6][13], key_layer[6][14], sort_layer[6][13], sort_layer[6][14]);
-alien_comparator(key_layer[5][17], key_layer[5][18], sort_layer[5][17],sort_layer[5][18], key_layer[6][17], key_layer[6][18], sort_layer[6][17], sort_layer[6][18]);
-alien_comparator(key_layer[5][19], key_layer[5][20], sort_layer[5][19],sort_layer[5][20], key_layer[6][19], key_layer[6][20], sort_layer[6][19], sort_layer[6][20]);
-alien_comparator(key_layer[5][21], key_layer[5][22], sort_layer[5][21],sort_layer[5][22], key_layer[6][21], key_layer[6][22], sort_layer[6][21], sort_layer[6][22]);
-alien_comparator(key_layer[5][25], key_layer[5][26], sort_layer[5][25],sort_layer[5][26], key_layer[6][25], key_layer[6][26], sort_layer[6][25], sort_layer[6][26]);
-alien_comparator(key_layer[5][27], key_layer[5][28], sort_layer[5][27],sort_layer[5][28], key_layer[6][27], key_layer[6][28], sort_layer[6][27], sort_layer[6][28]);
-alien_comparator(key_layer[5][29], key_layer[5][30], sort_layer[5][29],sort_layer[5][30], key_layer[6][29], key_layer[6][30], sort_layer[6][29], sort_layer[6][30]);
 assign sort_layer[6][0] = sort_layer[5][0];
 assign key_layer[6][0] = key_layer[5][0];
 assign sort_layer[6][7] = sort_layer[5][7];
@@ -450,14 +411,6 @@ assign sort_layer[6][8] = sort_layer[5][8];
 assign key_layer[6][8] = key_layer[5][8];
 assign sort_layer[6][15] = sort_layer[5][15];
 assign key_layer[6][15] = key_layer[5][15];
-assign sort_layer[6][16] = sort_layer[5][16];
-assign key_layer[6][16] = key_layer[5][16];
-assign sort_layer[6][23] = sort_layer[5][23];
-assign key_layer[6][23] = key_layer[5][23];
-assign sort_layer[6][24] = sort_layer[5][24];
-assign key_layer[6][24] = key_layer[5][24];
-assign sort_layer[6][31] = sort_layer[5][31];
-assign key_layer[6][31] = key_layer[5][31];
 alien_comparator(key_layer[6][0], key_layer[6][8], sort_layer[6][0],sort_layer[6][8], key_layer[7][0], key_layer[7][8], sort_layer[7][0], sort_layer[7][8]);
 alien_comparator(key_layer[6][1], key_layer[6][9], sort_layer[6][1],sort_layer[6][9], key_layer[7][1], key_layer[7][9], sort_layer[7][1], sort_layer[7][9]);
 alien_comparator(key_layer[6][2], key_layer[6][10], sort_layer[6][2],sort_layer[6][10], key_layer[7][2], key_layer[7][10], sort_layer[7][2], sort_layer[7][10]);
@@ -466,22 +419,10 @@ alien_comparator(key_layer[6][4], key_layer[6][12], sort_layer[6][4],sort_layer[
 alien_comparator(key_layer[6][5], key_layer[6][13], sort_layer[6][5],sort_layer[6][13], key_layer[7][5], key_layer[7][13], sort_layer[7][5], sort_layer[7][13]);
 alien_comparator(key_layer[6][6], key_layer[6][14], sort_layer[6][6],sort_layer[6][14], key_layer[7][6], key_layer[7][14], sort_layer[7][6], sort_layer[7][14]);
 alien_comparator(key_layer[6][7], key_layer[6][15], sort_layer[6][7],sort_layer[6][15], key_layer[7][7], key_layer[7][15], sort_layer[7][7], sort_layer[7][15]);
-alien_comparator(key_layer[6][16], key_layer[6][24], sort_layer[6][16],sort_layer[6][24], key_layer[7][16], key_layer[7][24], sort_layer[7][16], sort_layer[7][24]);
-alien_comparator(key_layer[6][17], key_layer[6][25], sort_layer[6][17],sort_layer[6][25], key_layer[7][17], key_layer[7][25], sort_layer[7][17], sort_layer[7][25]);
-alien_comparator(key_layer[6][18], key_layer[6][26], sort_layer[6][18],sort_layer[6][26], key_layer[7][18], key_layer[7][26], sort_layer[7][18], sort_layer[7][26]);
-alien_comparator(key_layer[6][19], key_layer[6][27], sort_layer[6][19],sort_layer[6][27], key_layer[7][19], key_layer[7][27], sort_layer[7][19], sort_layer[7][27]);
-alien_comparator(key_layer[6][20], key_layer[6][28], sort_layer[6][20],sort_layer[6][28], key_layer[7][20], key_layer[7][28], sort_layer[7][20], sort_layer[7][28]);
-alien_comparator(key_layer[6][21], key_layer[6][29], sort_layer[6][21],sort_layer[6][29], key_layer[7][21], key_layer[7][29], sort_layer[7][21], sort_layer[7][29]);
-alien_comparator(key_layer[6][22], key_layer[6][30], sort_layer[6][22],sort_layer[6][30], key_layer[7][22], key_layer[7][30], sort_layer[7][22], sort_layer[7][30]);
-alien_comparator(key_layer[6][23], key_layer[6][31], sort_layer[6][23],sort_layer[6][31], key_layer[7][23], key_layer[7][31], sort_layer[7][23], sort_layer[7][31]);
 alien_comparator(key_layer[7][4], key_layer[7][8], sort_layer[7][4],sort_layer[7][8], key_layer[8][4], key_layer[8][8], sort_layer[8][4], sort_layer[8][8]);
 alien_comparator(key_layer[7][5], key_layer[7][9], sort_layer[7][5],sort_layer[7][9], key_layer[8][5], key_layer[8][9], sort_layer[8][5], sort_layer[8][9]);
 alien_comparator(key_layer[7][6], key_layer[7][10], sort_layer[7][6],sort_layer[7][10], key_layer[8][6], key_layer[8][10], sort_layer[8][6], sort_layer[8][10]);
 alien_comparator(key_layer[7][7], key_layer[7][11], sort_layer[7][7],sort_layer[7][11], key_layer[8][7], key_layer[8][11], sort_layer[8][7], sort_layer[8][11]);
-alien_comparator(key_layer[7][20], key_layer[7][24], sort_layer[7][20],sort_layer[7][24], key_layer[8][20], key_layer[8][24], sort_layer[8][20], sort_layer[8][24]);
-alien_comparator(key_layer[7][21], key_layer[7][25], sort_layer[7][21],sort_layer[7][25], key_layer[8][21], key_layer[8][25], sort_layer[8][21], sort_layer[8][25]);
-alien_comparator(key_layer[7][22], key_layer[7][26], sort_layer[7][22],sort_layer[7][26], key_layer[8][22], key_layer[8][26], sort_layer[8][22], sort_layer[8][26]);
-alien_comparator(key_layer[7][23], key_layer[7][27], sort_layer[7][23],sort_layer[7][27], key_layer[8][23], key_layer[8][27], sort_layer[8][23], sort_layer[8][27]);
 assign sort_layer[8][0] = sort_layer[7][0];
 assign key_layer[8][0] = key_layer[7][0];
 assign sort_layer[8][1] = sort_layer[7][1];
@@ -498,34 +439,12 @@ assign sort_layer[8][14] = sort_layer[7][14];
 assign key_layer[8][14] = key_layer[7][14];
 assign sort_layer[8][15] = sort_layer[7][15];
 assign key_layer[8][15] = key_layer[7][15];
-assign sort_layer[8][16] = sort_layer[7][16];
-assign key_layer[8][16] = key_layer[7][16];
-assign sort_layer[8][17] = sort_layer[7][17];
-assign key_layer[8][17] = key_layer[7][17];
-assign sort_layer[8][18] = sort_layer[7][18];
-assign key_layer[8][18] = key_layer[7][18];
-assign sort_layer[8][19] = sort_layer[7][19];
-assign key_layer[8][19] = key_layer[7][19];
-assign sort_layer[8][28] = sort_layer[7][28];
-assign key_layer[8][28] = key_layer[7][28];
-assign sort_layer[8][29] = sort_layer[7][29];
-assign key_layer[8][29] = key_layer[7][29];
-assign sort_layer[8][30] = sort_layer[7][30];
-assign key_layer[8][30] = key_layer[7][30];
-assign sort_layer[8][31] = sort_layer[7][31];
-assign key_layer[8][31] = key_layer[7][31];
 alien_comparator(key_layer[8][2], key_layer[8][4], sort_layer[8][2],sort_layer[8][4], key_layer[9][2], key_layer[9][4], sort_layer[9][2], sort_layer[9][4]);
 alien_comparator(key_layer[8][3], key_layer[8][5], sort_layer[8][3],sort_layer[8][5], key_layer[9][3], key_layer[9][5], sort_layer[9][3], sort_layer[9][5]);
 alien_comparator(key_layer[8][6], key_layer[8][8], sort_layer[8][6],sort_layer[8][8], key_layer[9][6], key_layer[9][8], sort_layer[9][6], sort_layer[9][8]);
 alien_comparator(key_layer[8][7], key_layer[8][9], sort_layer[8][7],sort_layer[8][9], key_layer[9][7], key_layer[9][9], sort_layer[9][7], sort_layer[9][9]);
 alien_comparator(key_layer[8][10], key_layer[8][12], sort_layer[8][10],sort_layer[8][12], key_layer[9][10], key_layer[9][12], sort_layer[9][10], sort_layer[9][12]);
 alien_comparator(key_layer[8][11], key_layer[8][13], sort_layer[8][11],sort_layer[8][13], key_layer[9][11], key_layer[9][13], sort_layer[9][11], sort_layer[9][13]);
-alien_comparator(key_layer[8][18], key_layer[8][20], sort_layer[8][18],sort_layer[8][20], key_layer[9][18], key_layer[9][20], sort_layer[9][18], sort_layer[9][20]);
-alien_comparator(key_layer[8][19], key_layer[8][21], sort_layer[8][19],sort_layer[8][21], key_layer[9][19], key_layer[9][21], sort_layer[9][19], sort_layer[9][21]);
-alien_comparator(key_layer[8][22], key_layer[8][24], sort_layer[8][22],sort_layer[8][24], key_layer[9][22], key_layer[9][24], sort_layer[9][22], sort_layer[9][24]);
-alien_comparator(key_layer[8][23], key_layer[8][25], sort_layer[8][23],sort_layer[8][25], key_layer[9][23], key_layer[9][25], sort_layer[9][23], sort_layer[9][25]);
-alien_comparator(key_layer[8][26], key_layer[8][28], sort_layer[8][26],sort_layer[8][28], key_layer[9][26], key_layer[9][28], sort_layer[9][26], sort_layer[9][28]);
-alien_comparator(key_layer[8][27], key_layer[8][29], sort_layer[8][27],sort_layer[8][29], key_layer[9][27], key_layer[9][29], sort_layer[9][27], sort_layer[9][29]);
 assign sort_layer[9][0] = sort_layer[8][0];
 assign key_layer[9][0] = key_layer[8][0];
 assign sort_layer[9][1] = sort_layer[8][1];
@@ -534,14 +453,6 @@ assign sort_layer[9][14] = sort_layer[8][14];
 assign key_layer[9][14] = key_layer[8][14];
 assign sort_layer[9][15] = sort_layer[8][15];
 assign key_layer[9][15] = key_layer[8][15];
-assign sort_layer[9][16] = sort_layer[8][16];
-assign key_layer[9][16] = key_layer[8][16];
-assign sort_layer[9][17] = sort_layer[8][17];
-assign key_layer[9][17] = key_layer[8][17];
-assign sort_layer[9][30] = sort_layer[8][30];
-assign key_layer[9][30] = key_layer[8][30];
-assign sort_layer[9][31] = sort_layer[8][31];
-assign key_layer[9][31] = key_layer[8][31];
 alien_comparator(key_layer[9][1], key_layer[9][2], sort_layer[9][1],sort_layer[9][2], key_layer[10][1], key_layer[10][2], sort_layer[10][1], sort_layer[10][2]);
 alien_comparator(key_layer[9][3], key_layer[9][4], sort_layer[9][3],sort_layer[9][4], key_layer[10][3], key_layer[10][4], sort_layer[10][3], sort_layer[10][4]);
 alien_comparator(key_layer[9][5], key_layer[9][6], sort_layer[9][5],sort_layer[9][6], key_layer[10][5], key_layer[10][6], sort_layer[10][5], sort_layer[10][6]);
@@ -549,147 +460,10 @@ alien_comparator(key_layer[9][7], key_layer[9][8], sort_layer[9][7],sort_layer[9
 alien_comparator(key_layer[9][9], key_layer[9][10], sort_layer[9][9],sort_layer[9][10], key_layer[10][9], key_layer[10][10], sort_layer[10][9], sort_layer[10][10]);
 alien_comparator(key_layer[9][11], key_layer[9][12], sort_layer[9][11],sort_layer[9][12], key_layer[10][11], key_layer[10][12], sort_layer[10][11], sort_layer[10][12]);
 alien_comparator(key_layer[9][13], key_layer[9][14], sort_layer[9][13],sort_layer[9][14], key_layer[10][13], key_layer[10][14], sort_layer[10][13], sort_layer[10][14]);
-alien_comparator(key_layer[9][17], key_layer[9][18], sort_layer[9][17],sort_layer[9][18], key_layer[10][17], key_layer[10][18], sort_layer[10][17], sort_layer[10][18]);
-alien_comparator(key_layer[9][19], key_layer[9][20], sort_layer[9][19],sort_layer[9][20], key_layer[10][19], key_layer[10][20], sort_layer[10][19], sort_layer[10][20]);
-alien_comparator(key_layer[9][21], key_layer[9][22], sort_layer[9][21],sort_layer[9][22], key_layer[10][21], key_layer[10][22], sort_layer[10][21], sort_layer[10][22]);
-alien_comparator(key_layer[9][23], key_layer[9][24], sort_layer[9][23],sort_layer[9][24], key_layer[10][23], key_layer[10][24], sort_layer[10][23], sort_layer[10][24]);
-alien_comparator(key_layer[9][25], key_layer[9][26], sort_layer[9][25],sort_layer[9][26], key_layer[10][25], key_layer[10][26], sort_layer[10][25], sort_layer[10][26]);
-alien_comparator(key_layer[9][27], key_layer[9][28], sort_layer[9][27],sort_layer[9][28], key_layer[10][27], key_layer[10][28], sort_layer[10][27], sort_layer[10][28]);
-alien_comparator(key_layer[9][29], key_layer[9][30], sort_layer[9][29],sort_layer[9][30], key_layer[10][29], key_layer[10][30], sort_layer[10][29], sort_layer[10][30]);
 assign sort_layer[10][0] = sort_layer[9][0];
 assign key_layer[10][0] = key_layer[9][0];
 assign sort_layer[10][15] = sort_layer[9][15];
 assign key_layer[10][15] = key_layer[9][15];
-assign sort_layer[10][16] = sort_layer[9][16];
-assign key_layer[10][16] = key_layer[9][16];
-assign sort_layer[10][31] = sort_layer[9][31];
-assign key_layer[10][31] = key_layer[9][31];
-alien_comparator(key_layer[10][0], key_layer[10][16], sort_layer[10][0],sort_layer[10][16], key_layer[11][0], key_layer[11][16], sort_layer[11][0], sort_layer[11][16]);
-alien_comparator(key_layer[10][1], key_layer[10][17], sort_layer[10][1],sort_layer[10][17], key_layer[11][1], key_layer[11][17], sort_layer[11][1], sort_layer[11][17]);
-alien_comparator(key_layer[10][2], key_layer[10][18], sort_layer[10][2],sort_layer[10][18], key_layer[11][2], key_layer[11][18], sort_layer[11][2], sort_layer[11][18]);
-alien_comparator(key_layer[10][3], key_layer[10][19], sort_layer[10][3],sort_layer[10][19], key_layer[11][3], key_layer[11][19], sort_layer[11][3], sort_layer[11][19]);
-alien_comparator(key_layer[10][4], key_layer[10][20], sort_layer[10][4],sort_layer[10][20], key_layer[11][4], key_layer[11][20], sort_layer[11][4], sort_layer[11][20]);
-alien_comparator(key_layer[10][5], key_layer[10][21], sort_layer[10][5],sort_layer[10][21], key_layer[11][5], key_layer[11][21], sort_layer[11][5], sort_layer[11][21]);
-alien_comparator(key_layer[10][6], key_layer[10][22], sort_layer[10][6],sort_layer[10][22], key_layer[11][6], key_layer[11][22], sort_layer[11][6], sort_layer[11][22]);
-alien_comparator(key_layer[10][7], key_layer[10][23], sort_layer[10][7],sort_layer[10][23], key_layer[11][7], key_layer[11][23], sort_layer[11][7], sort_layer[11][23]);
-alien_comparator(key_layer[10][8], key_layer[10][24], sort_layer[10][8],sort_layer[10][24], key_layer[11][8], key_layer[11][24], sort_layer[11][8], sort_layer[11][24]);
-alien_comparator(key_layer[10][9], key_layer[10][25], sort_layer[10][9],sort_layer[10][25], key_layer[11][9], key_layer[11][25], sort_layer[11][9], sort_layer[11][25]);
-alien_comparator(key_layer[10][10], key_layer[10][26], sort_layer[10][10],sort_layer[10][26], key_layer[11][10], key_layer[11][26], sort_layer[11][10], sort_layer[11][26]);
-alien_comparator(key_layer[10][11], key_layer[10][27], sort_layer[10][11],sort_layer[10][27], key_layer[11][11], key_layer[11][27], sort_layer[11][11], sort_layer[11][27]);
-alien_comparator(key_layer[10][12], key_layer[10][28], sort_layer[10][12],sort_layer[10][28], key_layer[11][12], key_layer[11][28], sort_layer[11][12], sort_layer[11][28]);
-alien_comparator(key_layer[10][13], key_layer[10][29], sort_layer[10][13],sort_layer[10][29], key_layer[11][13], key_layer[11][29], sort_layer[11][13], sort_layer[11][29]);
-alien_comparator(key_layer[10][14], key_layer[10][30], sort_layer[10][14],sort_layer[10][30], key_layer[11][14], key_layer[11][30], sort_layer[11][14], sort_layer[11][30]);
-alien_comparator(key_layer[10][15], key_layer[10][31], sort_layer[10][15],sort_layer[10][31], key_layer[11][15], key_layer[11][31], sort_layer[11][15], sort_layer[11][31]);
-alien_comparator(key_layer[11][8], key_layer[11][16], sort_layer[11][8],sort_layer[11][16], key_layer[12][8], key_layer[12][16], sort_layer[12][8], sort_layer[12][16]);
-alien_comparator(key_layer[11][9], key_layer[11][17], sort_layer[11][9],sort_layer[11][17], key_layer[12][9], key_layer[12][17], sort_layer[12][9], sort_layer[12][17]);
-alien_comparator(key_layer[11][10], key_layer[11][18], sort_layer[11][10],sort_layer[11][18], key_layer[12][10], key_layer[12][18], sort_layer[12][10], sort_layer[12][18]);
-alien_comparator(key_layer[11][11], key_layer[11][19], sort_layer[11][11],sort_layer[11][19], key_layer[12][11], key_layer[12][19], sort_layer[12][11], sort_layer[12][19]);
-alien_comparator(key_layer[11][12], key_layer[11][20], sort_layer[11][12],sort_layer[11][20], key_layer[12][12], key_layer[12][20], sort_layer[12][12], sort_layer[12][20]);
-alien_comparator(key_layer[11][13], key_layer[11][21], sort_layer[11][13],sort_layer[11][21], key_layer[12][13], key_layer[12][21], sort_layer[12][13], sort_layer[12][21]);
-alien_comparator(key_layer[11][14], key_layer[11][22], sort_layer[11][14],sort_layer[11][22], key_layer[12][14], key_layer[12][22], sort_layer[12][14], sort_layer[12][22]);
-alien_comparator(key_layer[11][15], key_layer[11][23], sort_layer[11][15],sort_layer[11][23], key_layer[12][15], key_layer[12][23], sort_layer[12][15], sort_layer[12][23]);
-assign sort_layer[12][0] = sort_layer[11][0];
-assign key_layer[12][0] = key_layer[11][0];
-assign sort_layer[12][1] = sort_layer[11][1];
-assign key_layer[12][1] = key_layer[11][1];
-assign sort_layer[12][2] = sort_layer[11][2];
-assign key_layer[12][2] = key_layer[11][2];
-assign sort_layer[12][3] = sort_layer[11][3];
-assign key_layer[12][3] = key_layer[11][3];
-assign sort_layer[12][4] = sort_layer[11][4];
-assign key_layer[12][4] = key_layer[11][4];
-assign sort_layer[12][5] = sort_layer[11][5];
-assign key_layer[12][5] = key_layer[11][5];
-assign sort_layer[12][6] = sort_layer[11][6];
-assign key_layer[12][6] = key_layer[11][6];
-assign sort_layer[12][7] = sort_layer[11][7];
-assign key_layer[12][7] = key_layer[11][7];
-assign sort_layer[12][24] = sort_layer[11][24];
-assign key_layer[12][24] = key_layer[11][24];
-assign sort_layer[12][25] = sort_layer[11][25];
-assign key_layer[12][25] = key_layer[11][25];
-assign sort_layer[12][26] = sort_layer[11][26];
-assign key_layer[12][26] = key_layer[11][26];
-assign sort_layer[12][27] = sort_layer[11][27];
-assign key_layer[12][27] = key_layer[11][27];
-assign sort_layer[12][28] = sort_layer[11][28];
-assign key_layer[12][28] = key_layer[11][28];
-assign sort_layer[12][29] = sort_layer[11][29];
-assign key_layer[12][29] = key_layer[11][29];
-assign sort_layer[12][30] = sort_layer[11][30];
-assign key_layer[12][30] = key_layer[11][30];
-assign sort_layer[12][31] = sort_layer[11][31];
-assign key_layer[12][31] = key_layer[11][31];
-alien_comparator(key_layer[12][4], key_layer[12][8], sort_layer[12][4],sort_layer[12][8], key_layer[13][4], key_layer[13][8], sort_layer[13][4], sort_layer[13][8]);
-alien_comparator(key_layer[12][5], key_layer[12][9], sort_layer[12][5],sort_layer[12][9], key_layer[13][5], key_layer[13][9], sort_layer[13][5], sort_layer[13][9]);
-alien_comparator(key_layer[12][6], key_layer[12][10], sort_layer[12][6],sort_layer[12][10], key_layer[13][6], key_layer[13][10], sort_layer[13][6], sort_layer[13][10]);
-alien_comparator(key_layer[12][7], key_layer[12][11], sort_layer[12][7],sort_layer[12][11], key_layer[13][7], key_layer[13][11], sort_layer[13][7], sort_layer[13][11]);
-alien_comparator(key_layer[12][12], key_layer[12][16], sort_layer[12][12],sort_layer[12][16], key_layer[13][12], key_layer[13][16], sort_layer[13][12], sort_layer[13][16]);
-alien_comparator(key_layer[12][13], key_layer[12][17], sort_layer[12][13],sort_layer[12][17], key_layer[13][13], key_layer[13][17], sort_layer[13][13], sort_layer[13][17]);
-alien_comparator(key_layer[12][14], key_layer[12][18], sort_layer[12][14],sort_layer[12][18], key_layer[13][14], key_layer[13][18], sort_layer[13][14], sort_layer[13][18]);
-alien_comparator(key_layer[12][15], key_layer[12][19], sort_layer[12][15],sort_layer[12][19], key_layer[13][15], key_layer[13][19], sort_layer[13][15], sort_layer[13][19]);
-alien_comparator(key_layer[12][20], key_layer[12][24], sort_layer[12][20],sort_layer[12][24], key_layer[13][20], key_layer[13][24], sort_layer[13][20], sort_layer[13][24]);
-alien_comparator(key_layer[12][21], key_layer[12][25], sort_layer[12][21],sort_layer[12][25], key_layer[13][21], key_layer[13][25], sort_layer[13][21], sort_layer[13][25]);
-alien_comparator(key_layer[12][22], key_layer[12][26], sort_layer[12][22],sort_layer[12][26], key_layer[13][22], key_layer[13][26], sort_layer[13][22], sort_layer[13][26]);
-alien_comparator(key_layer[12][23], key_layer[12][27], sort_layer[12][23],sort_layer[12][27], key_layer[13][23], key_layer[13][27], sort_layer[13][23], sort_layer[13][27]);
-assign sort_layer[13][0] = sort_layer[12][0];
-assign key_layer[13][0] = key_layer[12][0];
-assign sort_layer[13][1] = sort_layer[12][1];
-assign key_layer[13][1] = key_layer[12][1];
-assign sort_layer[13][2] = sort_layer[12][2];
-assign key_layer[13][2] = key_layer[12][2];
-assign sort_layer[13][3] = sort_layer[12][3];
-assign key_layer[13][3] = key_layer[12][3];
-assign sort_layer[13][28] = sort_layer[12][28];
-assign key_layer[13][28] = key_layer[12][28];
-assign sort_layer[13][29] = sort_layer[12][29];
-assign key_layer[13][29] = key_layer[12][29];
-assign sort_layer[13][30] = sort_layer[12][30];
-assign key_layer[13][30] = key_layer[12][30];
-assign sort_layer[13][31] = sort_layer[12][31];
-assign key_layer[13][31] = key_layer[12][31];
-alien_comparator(key_layer[13][2], key_layer[13][4], sort_layer[13][2],sort_layer[13][4], key_layer[14][2], key_layer[14][4], sort_layer[14][2], sort_layer[14][4]);
-alien_comparator(key_layer[13][3], key_layer[13][5], sort_layer[13][3],sort_layer[13][5], key_layer[14][3], key_layer[14][5], sort_layer[14][3], sort_layer[14][5]);
-alien_comparator(key_layer[13][6], key_layer[13][8], sort_layer[13][6],sort_layer[13][8], key_layer[14][6], key_layer[14][8], sort_layer[14][6], sort_layer[14][8]);
-alien_comparator(key_layer[13][7], key_layer[13][9], sort_layer[13][7],sort_layer[13][9], key_layer[14][7], key_layer[14][9], sort_layer[14][7], sort_layer[14][9]);
-alien_comparator(key_layer[13][10], key_layer[13][12], sort_layer[13][10],sort_layer[13][12], key_layer[14][10], key_layer[14][12], sort_layer[14][10], sort_layer[14][12]);
-alien_comparator(key_layer[13][11], key_layer[13][13], sort_layer[13][11],sort_layer[13][13], key_layer[14][11], key_layer[14][13], sort_layer[14][11], sort_layer[14][13]);
-alien_comparator(key_layer[13][14], key_layer[13][16], sort_layer[13][14],sort_layer[13][16], key_layer[14][14], key_layer[14][16], sort_layer[14][14], sort_layer[14][16]);
-alien_comparator(key_layer[13][15], key_layer[13][17], sort_layer[13][15],sort_layer[13][17], key_layer[14][15], key_layer[14][17], sort_layer[14][15], sort_layer[14][17]);
-alien_comparator(key_layer[13][18], key_layer[13][20], sort_layer[13][18],sort_layer[13][20], key_layer[14][18], key_layer[14][20], sort_layer[14][18], sort_layer[14][20]);
-alien_comparator(key_layer[13][19], key_layer[13][21], sort_layer[13][19],sort_layer[13][21], key_layer[14][19], key_layer[14][21], sort_layer[14][19], sort_layer[14][21]);
-alien_comparator(key_layer[13][22], key_layer[13][24], sort_layer[13][22],sort_layer[13][24], key_layer[14][22], key_layer[14][24], sort_layer[14][22], sort_layer[14][24]);
-alien_comparator(key_layer[13][23], key_layer[13][25], sort_layer[13][23],sort_layer[13][25], key_layer[14][23], key_layer[14][25], sort_layer[14][23], sort_layer[14][25]);
-alien_comparator(key_layer[13][26], key_layer[13][28], sort_layer[13][26],sort_layer[13][28], key_layer[14][26], key_layer[14][28], sort_layer[14][26], sort_layer[14][28]);
-alien_comparator(key_layer[13][27], key_layer[13][29], sort_layer[13][27],sort_layer[13][29], key_layer[14][27], key_layer[14][29], sort_layer[14][27], sort_layer[14][29]);
-assign sort_layer[14][0] = sort_layer[13][0];
-assign key_layer[14][0] = key_layer[13][0];
-assign sort_layer[14][1] = sort_layer[13][1];
-assign key_layer[14][1] = key_layer[13][1];
-assign sort_layer[14][30] = sort_layer[13][30];
-assign key_layer[14][30] = key_layer[13][30];
-assign sort_layer[14][31] = sort_layer[13][31];
-assign key_layer[14][31] = key_layer[13][31];
-alien_comparator(key_layer[14][1], key_layer[14][2], sort_layer[14][1],sort_layer[14][2], key_layer[15][1], key_layer[15][2], sort_layer[15][1], sort_layer[15][2]);
-alien_comparator(key_layer[14][3], key_layer[14][4], sort_layer[14][3],sort_layer[14][4], key_layer[15][3], key_layer[15][4], sort_layer[15][3], sort_layer[15][4]);
-alien_comparator(key_layer[14][5], key_layer[14][6], sort_layer[14][5],sort_layer[14][6], key_layer[15][5], key_layer[15][6], sort_layer[15][5], sort_layer[15][6]);
-alien_comparator(key_layer[14][7], key_layer[14][8], sort_layer[14][7],sort_layer[14][8], key_layer[15][7], key_layer[15][8], sort_layer[15][7], sort_layer[15][8]);
-alien_comparator(key_layer[14][9], key_layer[14][10], sort_layer[14][9],sort_layer[14][10], key_layer[15][9], key_layer[15][10], sort_layer[15][9], sort_layer[15][10]);
-alien_comparator(key_layer[14][11], key_layer[14][12], sort_layer[14][11],sort_layer[14][12], key_layer[15][11], key_layer[15][12], sort_layer[15][11], sort_layer[15][12]);
-alien_comparator(key_layer[14][13], key_layer[14][14], sort_layer[14][13],sort_layer[14][14], key_layer[15][13], key_layer[15][14], sort_layer[15][13], sort_layer[15][14]);
-alien_comparator(key_layer[14][15], key_layer[14][16], sort_layer[14][15],sort_layer[14][16], key_layer[15][15], key_layer[15][16], sort_layer[15][15], sort_layer[15][16]);
-alien_comparator(key_layer[14][17], key_layer[14][18], sort_layer[14][17],sort_layer[14][18], key_layer[15][17], key_layer[15][18], sort_layer[15][17], sort_layer[15][18]);
-alien_comparator(key_layer[14][19], key_layer[14][20], sort_layer[14][19],sort_layer[14][20], key_layer[15][19], key_layer[15][20], sort_layer[15][19], sort_layer[15][20]);
-alien_comparator(key_layer[14][21], key_layer[14][22], sort_layer[14][21],sort_layer[14][22], key_layer[15][21], key_layer[15][22], sort_layer[15][21], sort_layer[15][22]);
-alien_comparator(key_layer[14][23], key_layer[14][24], sort_layer[14][23],sort_layer[14][24], key_layer[15][23], key_layer[15][24], sort_layer[15][23], sort_layer[15][24]);
-alien_comparator(key_layer[14][25], key_layer[14][26], sort_layer[14][25],sort_layer[14][26], key_layer[15][25], key_layer[15][26], sort_layer[15][25], sort_layer[15][26]);
-alien_comparator(key_layer[14][27], key_layer[14][28], sort_layer[14][27],sort_layer[14][28], key_layer[15][27], key_layer[15][28], sort_layer[15][27], sort_layer[15][28]);
-alien_comparator(key_layer[14][29], key_layer[14][30], sort_layer[14][29],sort_layer[14][30], key_layer[15][29], key_layer[15][30], sort_layer[15][29], sort_layer[15][30]);
-assign sort_layer[15][0] = sort_layer[14][0];
-assign key_layer[15][0] = key_layer[14][0];
-assign sort_layer[15][31] = sort_layer[14][31];
-assign key_layer[15][31] = key_layer[14][31];
-
 endmodule
 
 module alien_comparator(

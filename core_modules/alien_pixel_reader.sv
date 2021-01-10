@@ -19,6 +19,8 @@
 // 
 //////////////////////////////////////////////////////////////////////////////////
 
+`include "constants.svh"
+`include "typedefs.svh"
 
 module alien_pixel_reader(
     input clk,
@@ -27,9 +29,10 @@ module alien_pixel_reader(
     input [3:0] size_select,
     input [1:0] deriv_select,
     input [10:0] read_addr,
-    output logic palette_out
+    output logic [18:0] addr_out
     );
-    
+    logic [18:0] pixel_addr;
+    always @(posedge clk) addr_out <= pixel_addr;
     
 parameter [18:0] address_0_0_0_0 = 0;
 parameter [18:0] address_0_0_0_1 = 2048;
@@ -288,7 +291,6 @@ parameter [18:0] address_15_1_1_1 = 316474;
 parameter [18:0] address_15_1_1_2 = 317052;
 parameter [18:0] address_15_1_1_3 = 317630;
 
-logic [18:0] pixel_addr;
 always @* begin
 case({{size_select, alien_type[1], frame_num[0], deriv_select}})
 8'b00000000: pixel_addr = address_0_0_0_0 + read_addr;
@@ -551,12 +553,5 @@ default : pixel_addr = 0;
 endcase
 end
 
-
-
-alien_block_mem(
-.clka(clk),
-.addra(pixel_addr),
-.douta(palette_out)
-);
 
 endmodule
