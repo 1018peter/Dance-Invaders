@@ -10,6 +10,7 @@ module txt_pixel(
     input [STATE_SIZE-1:0] state,
     input [9:0] h_cnt,
     input [9:0] v_cnt,
+    input rst,
     output logic [11:0] pixel_out,
     output logic valid
     );
@@ -24,6 +25,9 @@ parameter R = 27;
 parameter T = 29;
 parameter V = 31;
 parameter L = 21;
+parameter D = 13;
+parameter N = 23;
+parameter I = 18;
 logic [CHAR_SIZE-1:0] ch[0:2];
 logic [CHAR_SIZE-1:0] ch_record[4:0][0:2];
 logic [SCORE_SIZE-1:0] score_rank[4:0];
@@ -38,70 +42,113 @@ assign {ch_record[4][0],ch_record[4][1],ch_record[4][2],ch_record[3][0],ch_recor
         ch_record[1][1],ch_record[1][2],ch_record[0][0],ch_record[0][1],ch_record[0][2]}=player_name_record;
 assign {score_rank[4],score_rank[3],score_rank[2],score_rank[1],score_rank[0]}=score_record;
 assign pixel_out=(bound)?12'hfff:pixel_out_ready;
+
+
+logic [24:0] counter;
+always @(posedge clk or posedge rst) begin
+    if(rst) begin
+        counter <=0 ;
+    end
+    else begin
+        if(counter<25'd25_000_000) begin
+            counter<=counter+1;
+        end
+        else begin
+           counter<=0; 
+        end
+    end
+end
+
+
+
+
 always @* begin
         valid=0;
         mem_txt_addr=0;
         reg_h_cnt_compressed=0;
         reg_v_cnt_compressed=0;
         bound=0;
-        if(state==SCENE_GAME_START) begin //scene begin
+        if(state==SCENE_GAME_START&&counter<25'd12_500_000) begin //scene begin
             if(v_cnt>=28&&v_cnt<140) begin
-        if(h_cnt>=145&&h_cnt<225) begin
-            mem_txt_addr=G;
-            reg_h_cnt_compressed=(h_cnt-145)>>4;
-            reg_v_cnt_compressed=(v_cnt-28)>>4;
-            valid=1;
-        end
-        else if(h_cnt>=235&&h_cnt<315) begin
-            reg_h_cnt_compressed=(h_cnt-235)>>4;
-            reg_v_cnt_compressed=(v_cnt-28)>>4;
-            mem_txt_addr=A;
-            valid=1;
-        end
-        else if(h_cnt>=325&&h_cnt<405) begin
-            mem_txt_addr=M;
-            reg_h_cnt_compressed=(h_cnt-325)>>4;
-            reg_v_cnt_compressed=(v_cnt-28)>>4;
-            valid=1;
-        end
-        else if(h_cnt>=415&&h_cnt<495)begin
-            mem_txt_addr=E;
-            reg_h_cnt_compressed=(h_cnt-415)>>4;
-            reg_v_cnt_compressed=(v_cnt-28)>>4;
-            valid=1;
-        end
-        end
-
-        else if(v_cnt>=160&&v_cnt<272) begin
             if(h_cnt>=100&&h_cnt<180) begin
-            mem_txt_addr=S;
+            mem_txt_addr=D;
             reg_h_cnt_compressed=(h_cnt-100)>>4;
-            reg_v_cnt_compressed=(v_cnt-160)>>4;
+            reg_v_cnt_compressed=(v_cnt-28)>>4;
             valid=1;
             end
             else if(h_cnt>=190&&h_cnt<270) begin
             reg_h_cnt_compressed=(h_cnt-190)>>4;
-            reg_v_cnt_compressed=(v_cnt-160)>>4;
-            mem_txt_addr=T;
+            reg_v_cnt_compressed=(v_cnt-28)>>4;
+            mem_txt_addr=A;
             valid=1;
             end
             else if(h_cnt>=280&&h_cnt<360) begin
-            mem_txt_addr=A;
+            mem_txt_addr=N;
             reg_h_cnt_compressed=(h_cnt-280)>>4;
-            reg_v_cnt_compressed=(v_cnt-160)>>4;
+            reg_v_cnt_compressed=(v_cnt-28)>>4;
             valid=1;
             end
             else if(h_cnt>=370&&h_cnt<450)begin
-            mem_txt_addr=R;
+            mem_txt_addr=C;
             reg_h_cnt_compressed=(h_cnt-370)>>4;
-            reg_v_cnt_compressed=(v_cnt-160)>>4;
+            reg_v_cnt_compressed=(v_cnt-28)>>4;
             valid=1;
             end
             else if(h_cnt>=460&&h_cnt<540)begin
-            mem_txt_addr=T;
+            mem_txt_addr=E;
             reg_h_cnt_compressed=(h_cnt-460)>>4;
-            reg_v_cnt_compressed=(v_cnt-160)>>4;
+            reg_v_cnt_compressed=(v_cnt-28)>>4;
             valid=1;
+            end
+        end
+        else if(v_cnt>=160&&v_cnt<216) begin
+            if(h_cnt>=125&&h_cnt<165) begin
+                mem_txt_addr=I;
+                reg_h_cnt_compressed=(h_cnt-125)>>3;
+                reg_v_cnt_compressed=(v_cnt-160)>>3;
+                valid=1;
+            end
+            else if(h_cnt>=175&&h_cnt<215) begin
+                mem_txt_addr=N;
+                reg_h_cnt_compressed=(h_cnt-175)>>3;
+                reg_v_cnt_compressed=(v_cnt-160)>>3;
+                valid=1;
+            end
+            else if(h_cnt>=225&&h_cnt<265) begin
+                mem_txt_addr=V;
+                reg_h_cnt_compressed=(h_cnt-225)>>3;
+                reg_v_cnt_compressed=(v_cnt-160)>>3;
+                valid=1;
+            end
+            else if(h_cnt>=275&&h_cnt<315) begin
+                mem_txt_addr=A;
+                reg_h_cnt_compressed=(h_cnt-275)>>3;
+                reg_v_cnt_compressed=(v_cnt-160)>>3;
+                valid=1;
+            end
+            else if(h_cnt>=325&&h_cnt<365) begin
+                mem_txt_addr=D;
+                reg_h_cnt_compressed=(h_cnt-325)>>3;
+                reg_v_cnt_compressed=(v_cnt-160)>>3;
+                valid=1;
+            end
+            else if(h_cnt>=375&&h_cnt<415) begin
+                mem_txt_addr=E;
+                reg_h_cnt_compressed=(h_cnt-375)>>3;
+                reg_v_cnt_compressed=(v_cnt-160)>>3;
+                valid=1;
+            end
+            else if(h_cnt>=425&&h_cnt<465) begin
+                mem_txt_addr=R;
+                reg_h_cnt_compressed=(h_cnt-425)>>3;
+                reg_v_cnt_compressed=(v_cnt-160)>>3;
+                valid=1;
+            end
+            else if(h_cnt>=475&&h_cnt<515) begin
+                mem_txt_addr=S;
+                reg_h_cnt_compressed=(h_cnt-475)>>3;
+                reg_v_cnt_compressed=(v_cnt-160)>>3;
+                valid=1;
             end
         end
         end//scene end

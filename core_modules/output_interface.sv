@@ -152,6 +152,7 @@ module output_interface(
         .score(player_score),
         .player_name_record(name_stream),
         .score_record(score_stream),
+        .rst(rst),
         .pixel_out(txt_pixel_out),
         .valid(txt_valid)
         );
