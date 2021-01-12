@@ -313,31 +313,31 @@ module alien_generator(
         case(cur_level)
         0: begin
         rand_type = type_distribution_0[random_num[0]];
-        rand_deg = 45;//deg_distribution_0[random_num[1:0]];
+        rand_deg = deg_distribution_0[random_num[1:0]];
         end
         1: begin
         rand_type = type_distribution_1[random_num[1:0]];
-        rand_deg = 45;//deg_distribution_0[random_num[1:0]];       
+        rand_deg = deg_distribution_0[random_num[1:0]];       
         end
         2: begin
         rand_type = type_distribution_2[random_num[1:0]];
-        rand_deg = 45;//deg_distribution_0[random_num[1:0]];        
+        rand_deg = deg_distribution_0[random_num[1:0]];        
         end
         3: begin
         rand_type = type_distribution_3[random_num[2:0]];
-        rand_deg = 45;//deg_distribution_1[random_num[2:0]];        
+        rand_deg = deg_distribution_1[random_num[2:0]];        
         end
         4: begin
         rand_type = type_distribution_4[random_num[1:0]];
-        rand_deg = 45;//deg_distribution_1[random_num[2:0]];        
+        rand_deg = deg_distribution_1[random_num[2:0]];        
         end
         5: begin
         rand_type = type_distribution_5[random_num[2:0]];
-        rand_deg = 45;//deg_distribution_2[random_num[3:0]];        
+        rand_deg = deg_distribution_2[random_num[3:0]];        
         end
         6: begin
         rand_type = type_distribution_6[random_num[0]];
-        rand_deg = 45;//deg_distribution_1[random_num[2:0]];        
+        rand_deg = deg_distribution_1[random_num[2:0]];        
         end
         7: begin
         rand_type = type_distribution_4[random_num[1:0]];

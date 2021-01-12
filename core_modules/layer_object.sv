@@ -41,6 +41,7 @@ module layer_object(
 	wire pixel_valid [0:OBJ_LIMIT-1];
 	wire in_frame [0:OBJ_LIMIT-1];
 	wire [1:0] deriv_select [0:OBJ_LIMIT-1];
+	parameter RENDER_LIMIT = 8;
 	generate
         for(genvar g = 0; g < OBJ_LIMIT; g++)
             alien_renderer #(.QUADRANT(QUADRANT))(
@@ -72,9 +73,8 @@ module layer_object(
 	   end
 	end
 	
-	logic [3:0] init_select [0:3];
-	logic [3:0] init_select_buf [0:3];
-	logic [3:0] select_end;
+	logic [3:0] init_select [0:RENDER_LIMIT-1];
+	logic [3:0] init_select_buf [0:RENDER_LIMIT-1];
 	always @* begin
 	   init_select[0] = 0;
 	   for(int i = 0; i < OBJ_LIMIT; ++i) begin
@@ -83,15 +83,8 @@ module layer_object(
 	           break;
 	       end
 	   end
-	   select_end = 0;
-	   for(int i = OBJ_LIMIT-1; i >= 0; --i) begin
-	       if(in_frame[i]) begin
-	           select_end = i;
-	           break;
-	       end
-	   end
 	   
-	   for(int g = 1; g < 4; ++g) begin
+	   for(int g = 1; g < RENDER_LIMIT; ++g) begin
 	       init_select[g] = init_select[g-1];
 	       for(int i = 0; i < OBJ_LIMIT; ++i) begin
 	           if(in_frame[i] && i > init_select[g-1]) begin
@@ -104,7 +97,7 @@ module layer_object(
 	
 	
 	
-	logic [3:0] alien_select [0:3];
+	logic [3:0] alien_select [0:RENDER_LIMIT-1];
 	
 	always @* begin
 	   alien_select = init_select_buf;
@@ -117,10 +110,10 @@ module layer_object(
        end
 	end
 	
-	wire [3:0] palette;
-	wire [18:0] addr [0:3];
+	wire [RENDER_LIMIT-1:0] palette;
+	wire [18:0] addr [0:RENDER_LIMIT-1];
 	generate
-	   for(genvar g = 0; g < 4; ++g) begin
+	   for(genvar g = 0; g < RENDER_LIMIT; ++g) begin
 	       alien_pixel_reader(
             .clk(clk_frame),
             .frame_num(frame_num[alien_select[g]]),
@@ -133,29 +126,25 @@ module layer_object(
 	   end
 	endgenerate
 	
+	generate
+	for(genvar g = 0; g < RENDER_LIMIT; g+= 2) begin
+	   alien_block_mem(
+	   .clka(clk_frame),
+	   .addra(addr[g]),
+	   .douta(palette[g]),
+	   .clkb(clk_frame),
+	   .addrb(addr[g+1]),
+	   .doutb(palette[g+1])
+	   );
 	
-	alien_block_mem ABM0(
-	.clka(clk_frame),
-	.addra(addr[0]),
-	.douta(palette[0]),
-	.clkb(clk_frame),
-	.addrb(addr[1]),
-	.doutb(palette[1])
-	);
+	end
+	endgenerate
 	
-	alien_block_mem ABM1(
-	.clka(clk_frame),
-	.addra(addr[2]),
-	.douta(palette[2]),
-	.clkb(clk_frame),
-	.addrb(addr[3]),
-	.doutb(palette[3])
-	);
 	
 	always @* begin
 	    pixel_out = 0;
 	    layer_valid = 0;
-	    for(int i = 0; i < 4; ++i) begin
+	    for(int i = 0; i < RENDER_LIMIT; ++i) begin
 	       if(pixel_valid[alien_select[i]] && (((palette[i] && deriv_select[alien_select[i]] > 1 && alien_type[alien_select[i]] > 1) || (!palette[i] && deriv_select[alien_select[i]] <= 1 && alien_type[alien_select[i]] > 1))
 	       || (palette[i] && alien_type[alien_select[i]] <= 1))) begin
 	           layer_valid = 1;
@@ -166,7 +155,7 @@ module layer_object(
                     2: pixel_out = { 4'hF - distance[i], 4'h4 - (distance[i] >> 3), 4'h4 - (distance[i] >> 3) };
                     3: pixel_out = { 4'hF - distance[i], 4'h4 - (distance[i] >> 3), 4'hF - distance[i] };
                    endcase
-               else pixel_out = 12'h2_2_2;
+               else pixel_out = 12'h0_C_F;
                break;
 	       end
 	    end
