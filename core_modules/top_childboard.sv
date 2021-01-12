@@ -11,12 +11,13 @@ module top_childboard(
     output hsync,
     output vsync
 );
-
+wire clk_div;
+clock_divider_slow #(.n(5))(.clk_div(clk_div),.clk(clk));
 logic [MESSAGE_SIZE-1:0] datagram;
 logic [MESSAGE_SIZE-1:0] data_out;
 logic valid;
 receiver #(.n(MESSAGE_SIZE)) (
-    .clk_receiver(clk),
+    .clk_receiver(clk_div),
     .wire_req(req),
     .wire_data_deliver(data_trans),
     .wire_data_out(data_out),
@@ -35,7 +36,7 @@ always @(posedge clk or posedge rst) begin
         datagram <=datagram;
     end
 end
-output_interface(
+output_interface #(.QUADRANT(0)) (
     .clk(clk),
     .rst(rst),
     .datagram(datagram),
@@ -48,3 +49,18 @@ output_interface(
 
 
 endmodule
+
+module clock_divider_slow(clk_div, clk);
+input clk;
+output clk_div;
+parameter n = 5;
+reg [n-1:0] num;
+wire [n-1:0] next_num;
+
+always @(posedge clk) begin
+  num <= next_num;
+end
+
+assign next_num = num + 1'b1;
+assign clk_div = num[n-1];
+endmodule 
