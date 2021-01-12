@@ -356,7 +356,7 @@ module alien_generator(
     new_alien._frame_num = 0;
     new_alien._r = (cur_level >> 1) + 8;
     new_alien._theta = rand_deg;
-    new_alien._hp = { rand_type, 1'b1 };
+    new_alien._hp = { rand_type + 1 };
     end
 endmodule
 

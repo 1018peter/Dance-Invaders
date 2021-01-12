@@ -287,7 +287,7 @@ module event_core(
             if(laser._r == 15) next_laser._active = 0;
             else for(int i = 0; i < OBJ_LIMIT; i++) begin
                 // Test collision with priority encoding.
-                if(obj_arr[i]._state == ACTIVE && obj_arr[i]._r == laser._r
+                if(obj_arr[i]._state == ACTIVE && obj_arr[i]._r == laser._r + 1
                 && obj_arr[i]._theta <= laser._deg + LSR_WIDTH
                 && obj_arr[i]._theta >= laser._deg - LSR_WIDTH) begin 
                     if(obj_arr[i]._hp == 1) begin

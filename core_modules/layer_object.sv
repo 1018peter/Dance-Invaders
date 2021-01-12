@@ -156,7 +156,7 @@ module layer_object(
 	    pixel_out = 0;
 	    layer_valid = 0;
 	    for(int i = 0; i < 4; ++i) begin
-	       if(pixel_valid[alien_select[i]] && ((!palette[i] && deriv_select[alien_select[i]] <= 1 && alien_type[alien_select[i]] > 1)
+	       if(pixel_valid[alien_select[i]] && (((palette[i] && deriv_select[alien_select[i]] > 1 && alien_type[alien_select[i]] > 1) || (!palette[i] && deriv_select[alien_select[i]] <= 1 && alien_type[alien_select[i]] > 1))
 	       || (palette[i] && alien_type[alien_select[i]] <= 1))) begin
 	           layer_valid = 1;
 	           if(frame_num[alien_select[i]] <= 1) 

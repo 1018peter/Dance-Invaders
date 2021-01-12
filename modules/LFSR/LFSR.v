@@ -27,6 +27,7 @@ module LFSR(
     output [15:0] rand_out
     );
     reg [15:0] reg_shift;
+    assign rand_out = reg_shift;
     always @(posedge clk, posedge rst) begin
         if (rst) reg_shift <= seed;
         else reg_shift <= { reg_shift[14:0], reg_shift[10] ^ reg_shift[12] ^ reg_shift[13] ^ reg_shift[15] };

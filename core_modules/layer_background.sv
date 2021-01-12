@@ -30,13 +30,13 @@ module layer_background(
     // TODO: Instantiate a memory block for the (sparse?) background using its .coe form.
     
     // Default.
-    wire [15:0] pixel_addr = (v_cnt >> 1) * 4 * 240 + (h_cnt >> 1);
+    wire [16:0] pixel_addr = (v_cnt >> 1) * 240 + (h_cnt >> 1);
     wire [7:0] hex_bus;
     wire [3:0] palette_select;
-    assign palette_select = pixel_addr[0] ? hex_bus[7:4] : hex_bus[3:0];
+    assign palette_select = pixel_addr[0] ? hex_bus[3:0] : hex_bus[7:4];
     
     parameter [11:0] PALETTE_COLOR = {
-    12'h122, 12'h112, 12'h112, 12'haaa,
+    12'h122, 12'h112, 12'h112, 12'hfff,
     12'h122, 12'h122, 12'h111, 12'h112,
     12'h222, 12'h112, 12'h112, 12'h112,
     12'h112, 12'h112, 12'h112, 12'h112
@@ -44,7 +44,7 @@ module layer_background(
     assign pixel = PALETTE_COLOR[palette_select];
     background_block_mem(
     .clka(clk),
-    .addra({pixel_addr[15:4], 3'b0}),
+    .addra(pixel_addr[16:1]),
     .douta(hex_bus)
     );
     

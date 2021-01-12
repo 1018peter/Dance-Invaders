@@ -174,7 +174,7 @@ module scoreboard(
     endgenerate
     
     
-    always @(posedge clk, posedge rst, posedge insert) begin
+    always @(posedge clk, posedge rst) begin
         if(rst) begin
             for(i = 0; i <= 5; i = i + 1) begin
                 reg_score[i] <= 0;
@@ -188,7 +188,7 @@ module scoreboard(
             reg_string[5] <= string_insert;
         end
         else begin // Update the list.
-            for(i = 0; i < 5; i = i + 1) begin
+            for(i = 0; i <= 5; i = i + 1) begin
                 reg_score[i] <= key_pipe_5[i];
                 reg_string[i] <= value_pipe_5[i];
             end
