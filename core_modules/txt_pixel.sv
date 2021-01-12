@@ -6,6 +6,7 @@ module txt_pixel(
     input [STRING_SIZE-1:0] player_name,
     input [STRING_SIZE*5-1:0] player_name_record,
     input [SCORE_SIZE-1:0] score,
+    input [SCORE_SIZE-1:0] score_cur,
     input [SCORE_SIZE*5-1:0] score_record,
     input [STATE_SIZE-1:0] state,
     input [9:0] h_cnt,
@@ -203,7 +204,47 @@ always @* begin
 
         end
         end//scene end
+        else if(state==SCENE_INGAME) begin//scene begin
+            if(v_cnt>=18&&v_cnt<74) begin
 
+        if(h_cnt>=200&&h_cnt<240) begin
+            mem_txt_addr=(score_cur/10000)%10;
+            reg_h_cnt_compressed=(h_cnt-200)>>3;
+            reg_v_cnt_compressed=(v_cnt-18)>>3;
+            valid=1;
+            bound=0;
+        end
+        else if(h_cnt>=250&&h_cnt<290) begin
+            mem_txt_addr=(score_cur/1000)%10;
+            reg_h_cnt_compressed=(h_cnt-250)>>3;
+            reg_v_cnt_compressed=(v_cnt-18)>>3;
+            valid=1;
+            bound=0;
+        end
+        else if(h_cnt>=300&&h_cnt<340) begin
+            reg_h_cnt_compressed=(h_cnt-300)>>3;
+            reg_v_cnt_compressed=(v_cnt-18)>>3;
+            mem_txt_addr=(score_cur/100)%10;
+            bound=0;
+            valid=1;
+        end
+        else if(h_cnt>=350&&h_cnt<390) begin
+            mem_txt_addr=(score_cur/10)%10;
+            bound=0;
+            reg_h_cnt_compressed=(h_cnt-350)>>3;
+            reg_v_cnt_compressed=(v_cnt-18)>>3;
+            valid=1;
+        end
+        else if(h_cnt>=400&&h_cnt<440) begin
+            mem_txt_addr=(score_cur)%10;
+            bound=0;
+            reg_h_cnt_compressed=(h_cnt-400)>>3;
+            reg_v_cnt_compressed=(v_cnt-18)>>3;
+            valid=1;
+        end
+
+        end
+        end//scene end
         else if(state==SCENE_GAME_OVER) begin //scene begin
             if(v_cnt>=28&&v_cnt<140) begin
         if(h_cnt>=145&&h_cnt<225) begin

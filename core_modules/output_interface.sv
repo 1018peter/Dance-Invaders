@@ -152,6 +152,7 @@ module output_interface(
         .score(player_score),
         .player_name_record(name_stream),
         .score_record(score_stream),
+        .score_cur(score_data),
         .rst(rst),
         .pixel_out(txt_pixel_out),
         .valid(txt_valid)
@@ -173,7 +174,10 @@ module output_interface(
             end  
         end
         SCENE_INGAME: begin
-            if(laser_layer_valid) begin
+            if(txt_valid) begin
+                rendered_pixel = txt_pixel_out;
+            end
+            else if(laser_layer_valid) begin
                 rendered_pixel = laser_pixel_out;
             end
             else if(obj_layer_valid) begin
