@@ -29,9 +29,9 @@ module mother_board(
     input btnD,
     input btnL,
     input btnR,
-    input ACK0,
-    output [5:0] DOUT0,
-    output REQ0,
+    input ACK [0:3],
+    output [5:0] DOUT [0:3],
+    output REQ [0:3],
     output [15:0] led,
     output [3:0] DIGIT,
     output [6:0] DISPLAY,
@@ -45,6 +45,7 @@ module mother_board(
     );
     
     wire [MESSAGE_SIZE-1:0] datagram;
+    wire sending_clk;
     control_core (
     .clk(clk),
     .rst(rst),
@@ -53,6 +54,7 @@ module mother_board(
     .btnL(btnL),
     .btnR(btnR),
     .RxD(RxD),
+    .sending_clk(sending_clk),
     .datagram(datagram),
     .led(led),
     .DIGIT(DIGIT),
@@ -60,15 +62,21 @@ module mother_board(
     );
     wire packet_valid = 1;
     
-    /*sender #(.n(MESSAGE_SIZE))
-    (
-    .clk_sender(clk),
-    .wire_ack(ACK0),
-    .wire_data_in(datagram),
-    .rst(rst),
-    .reg_data_out(DOUT0),
-    .reg_req(REQ0)
-    );
+    generate
+    for(genvar g = 0; g < 4; ++g) begin
+        sender #(.n(MESSAGE_SIZE))
+        (
+        .clk_sender(sending_clk),
+        .wire_ack(ACK[g]),
+        .wire_data_in(datagram),
+        .rst(rst),
+        .reg_data_out(DOUT[g]),
+        .reg_req(REQ[g])
+        );
+    end
+    endgenerate
+    
+    /*
     wire [MESSAGE_SIZE-1:0] recv_data;
     receiver #(.n(MESSAGE_SIZE))
     (
@@ -79,7 +87,7 @@ module mother_board(
     .reg_ack(interface_ack),
     .reg_valid(packet_valid)
     );
-    */
+    
     
     reg [MESSAGE_SIZE-1:0] reg_datagram;
     always @(posedge clk) begin
@@ -98,5 +106,5 @@ module mother_board(
     .vsync(vsync)
     );
     
-    
+    */
 endmodule

@@ -30,6 +30,7 @@ module control_core(
     input btnL,
     input btnR,
     input RxD,
+    output sending_clk,
     output [MESSAGE_SIZE - 1:0] datagram,
     output [15:0] led,
     output [3:0] DIGIT,
@@ -45,6 +46,10 @@ module control_core(
     .clk(clk),
     .clk_div(clk_dsp)
     );
+    clock_divider_two_power #(.n(10))(
+    .clk(clk),
+    .clk_div(sending_clk)
+    ); 
     
     wire clk_frame;
     wire clk_spawn;
