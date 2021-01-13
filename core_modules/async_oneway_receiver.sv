@@ -29,15 +29,16 @@ input [5:0] din,
 output logic [MESSAGE_SIZE-1:0] read_buffer
     );
     
-    logic [6:0] packet_pre;
-    logic [6:0] packet_onepulse;
+    logic [7:0] packet_pre;
+    logic [7:0] packet_onepulse;
     generate
     for(genvar g = 0; g < 6; ++g) begin
         debounce(packet_pre[g], din[g], clk_db);        
     end
     endgenerate
     debounce(packet_pre[6], packet_pulse, clk_db);
-    logic [6:0] pulsebuf;
+    debounce(packet_pre[7], transmit_ctrl, clk_db);
+    logic [7:0] pulsebuf;
     logic [MESSAGE_SIZE-1+6:0] recv_buffer = 0;
     
 	always @(posedge pulsebuf[6]) begin
@@ -45,7 +46,7 @@ output logic [MESSAGE_SIZE-1:0] read_buffer
 	end
     
 	always @(posedge pulsebuf[7]) begin
-        read_buffer <= recv_buffer[100-1+6:100%6];
+        read_buffer <= recv_buffer[MESSAGE_SIZE-1+6:100%6];
 	end
     
 endmodule
