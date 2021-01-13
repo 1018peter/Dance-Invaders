@@ -2,7 +2,7 @@
 module transmitter(
 input clk, //UART input clock
 input rst, // reset signal
-input transmit, //btn signal to trigger the UART communication
+//input transmit, //btn signal to trigger the UART communication
 input [MESSAGE_SIZE-1:0] data, // data transmitted
 output reg TxD // Transmitter serial output. TxD will be held high during reset, or when no transmissions aretaking place. 
     );
