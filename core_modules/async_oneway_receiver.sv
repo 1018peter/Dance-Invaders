@@ -37,36 +37,15 @@ output logic [MESSAGE_SIZE-1:0] read_buffer
     end
     endgenerate
     debounce(packet_pre[6], packet_pulse, clk_db);
-    parameter state_idle = 0;
-    parameter state_recv = 1;
-    parameter state_save = 2;
-    logic [1:0] state = state_idle;
     logic [6:0] pulsebuf;
-    always @(posedge clk_receive) begin
-        for(int i = 0; i < 7; ++i)
-            if(packet_pre[i]) pulsebuf[i] <= 1;
-            else pulsebuf[i] <= 0;
-    end
-    assign packet_onepulse = packet_pre & ~pulsebuf;
     logic [MESSAGE_SIZE-1+6:0] recv_buffer = 0;
     
-    always @(posedge clk_receive) begin
-        if(state == state_idle && transmit_ctrl) begin
-            state <= state_recv;
-        end
-        else if(state == state_recv) begin
-            if(packet_onepulse[6]) recv_buffer <= { packet_onepulse[5:0], recv_buffer[MESSAGE_SIZE-1+6:6]};
-            if(!transmit_ctrl) begin
-                state <= state_save;
-            end
-        end
-        else if(state == state_save) begin
-            read_buffer <= recv_buffer[MESSAGE_SIZE-1+6:MESSAGE_SIZE%6];
-            state <= state_idle;
-        end
-        
-    end
+	always @(posedge pulsebuf[6]) begin
+		recv_buffer <= { pulsebuf[5:0], recv_buffer[100-1+6:6]};
+	end
     
-    
+	always @(posedge pulsebuf[7]) begin
+        read_buffer <= recv_buffer[100-1+6:100%6];
+	end
     
 endmodule

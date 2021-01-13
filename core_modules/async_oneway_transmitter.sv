@@ -36,43 +36,41 @@ output logic packet_pulse
     parameter state_pulse = 3;
     logic [15:0] ptr;
     logic [1:0] state;
-    logic [MESSAGE_SIZE-1 + 6:0] send_buffer;
-    always @* begin
-        transmit_ctrl = state[1];
-    end
+    logic [MESSAGE_SIZE-1:0] send_buffer;
     
     always @(posedge clk_send, posedge rst) begin
     if(rst) begin
         state <= state_idle;
         ptr <= 0;
     end
-    else if(sync_load && state == state_idle) begin
+    else if(state == state_idle) begin
         state <= state_load;
+        send_buffer <= datagram_in;
         packet_pulse <= 0;
-        ptr <= 0;    
+        ptr <= 0;
+        transmit_ctrl <= 0;
     end
     else begin
         if(state == state_load) begin
-            send_buffer <= datagram_in;
             state <= state_send;
         end
         else if(state == state_send) begin
-            
+            state <= state_pulse;
             packet_out <= send_buffer[5:0];
             ptr <= ptr + 6;
             send_buffer <= send_buffer >> 6;
             packet_pulse <= 1;
-            state <= state_pulse;
         end
         else if(state == state_pulse) begin
             packet_pulse <= 0;
             if(ptr >= MESSAGE_SIZE) begin
-                state <= state_idle;  
+                state <= state_idle;
+                send_buffer <= datagram_in;
+                transmit_ctrl <= 1;
             end
             else state <= state_send;
         end
     end
     end
-    
     
 endmodule
