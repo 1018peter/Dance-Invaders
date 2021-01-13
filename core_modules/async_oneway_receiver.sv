@@ -22,6 +22,7 @@
 
 module async_oneway_receiver(
 input clk_receive,
+input clk_db,
 input transmit_ctrl,
 input packet_pulse,
 input [5:0] din,
@@ -32,10 +33,10 @@ output logic [MESSAGE_SIZE-1:0] read_buffer
     logic [6:0] packet_onepulse;
     generate
     for(genvar g = 0; g < 6; ++g) begin
-        debounce(packet_pre[g], din[g], clk_receive);        
+        debounce(packet_pre[g], din[g], clk_db);        
     end
     endgenerate
-    debounce(packet_pre[6], packet_pulse, clk_receive);
+    debounce(packet_pre[6], packet_pulse, clk_db);
     parameter state_idle = 0;
     parameter state_recv = 1;
     parameter state_save = 2;
