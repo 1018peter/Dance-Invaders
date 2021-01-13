@@ -38,14 +38,13 @@ output logic [MESSAGE_SIZE-1:0] read_buffer
     endgenerate
     debounce(packet_pre[6], packet_pulse, clk_db);
     debounce(packet_pre[7], transmit_ctrl, clk_db);
-    logic [7:0] pulsebuf;
     logic [MESSAGE_SIZE-1+6:0] recv_buffer = 0;
     
-	always @(posedge pulsebuf[6]) begin
-		recv_buffer <= { pulsebuf[5:0], recv_buffer[100-1+6:6]};
+	always @(posedge packet_pre[6]) begin
+		recv_buffer <= { packet_pre[5:0], recv_buffer[100-1+6:6]};
 	end
     
-	always @(posedge pulsebuf[7]) begin
+	always @(posedge packet_pre[7]) begin
         read_buffer <= recv_buffer[MESSAGE_SIZE-1+6:100%6];
 	end
     
