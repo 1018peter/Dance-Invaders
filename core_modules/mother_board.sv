@@ -64,14 +64,13 @@ module mother_board(
     
     generate
     for(genvar g = 0; g < 4; ++g) begin
-        sender #(.n(MESSAGE_SIZE))
-        (
+        async_oneway_transmitter(
         .clk_sender(sending_clk),
-        .wire_ack(ACK[g]),
-        .wire_data_in(datagram),
-        .rst(rst),
-        .reg_data_out(DOUT[g]),
-        .reg_req(REQ[g])
+        .packet_pulse(ACK[g]),
+        .packet_out(DOUT[g]),
+        .transmit_ctrl(REQ[g]),
+        .async_load(sending_clk),
+        .datagram_in(datagram)
         );
     end
     endgenerate
