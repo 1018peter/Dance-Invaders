@@ -31,6 +31,7 @@ module control_core(
     input btnR,
     input RxD,
     output sending_clk,
+    output loading_clk,
     output [MESSAGE_SIZE - 1:0] datagram,
     output [15:0] led,
     output [3:0] DIGIT,
@@ -46,10 +47,11 @@ module control_core(
     .clk(clk),
     .clk_div(clk_dsp)
     );
-    clock_divider_two_power #(.n(10))(
+    clock_divider_two_power #(.n(4))(
     .clk(clk),
     .clk_div(sending_clk)
-    ); 
+    );
+    
     
     wire clk_frame;
     wire clk_spawn;
@@ -60,6 +62,7 @@ module control_core(
     .select(clock_select),
     .clk_div(clk_frame)
     );
+    assign loading_clk = clk_frame;
     
     wire [7:0] event_packet;
     logic [7:0] event_buffer;

@@ -6,7 +6,7 @@
 // Global constants that can be referenced across the entire project.
 parameter OBJ_LIMIT = 16;
 parameter R_LIMIT = 15;
-parameter LSR_WIDTH = 10;
+parameter LSR_WIDTH = 20;
 parameter LSR_DATA_SIZE = 7;
 
 parameter SCORE_SIZE = 16;
