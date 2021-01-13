@@ -24,7 +24,7 @@
 module async_oneway_transmitter(
 input clk_send,
 input rst,
-input async_load,
+input sync_load,
 input [MESSAGE_SIZE-1:0] datagram_in,
 output logic [5:0] packet_out,
 output logic transmit_ctrl,
@@ -41,15 +41,15 @@ output logic packet_pulse
         transmit_ctrl = state[1];
     end
     
-    always @(posedge clk_send, posedge rst, posedge async_load) begin
+    always @(posedge clk_send, posedge rst) begin
     if(rst) begin
         state <= state_idle;
-        ptr <= 5;
+        ptr <= 0;
     end
-    else if(async_load && state == state_idle) begin
+    else if(sync_load && state == state_idle) begin
         state <= state_load;
         packet_pulse <= 0;
-        ptr <= 5;    
+        ptr <= 0;    
     end
     else begin
         if(state == state_load) begin
@@ -57,10 +57,7 @@ output logic packet_pulse
             state <= state_send;
         end
         else if(state == state_send) begin
-            if(ptr >= MESSAGE_SIZE) begin
-                state <= state_idle;
-                
-            end
+            
             packet_out <= send_buffer[5:0];
             ptr <= ptr + 6;
             send_buffer <= send_buffer >> 6;
@@ -69,7 +66,10 @@ output logic packet_pulse
         end
         else if(state == state_pulse) begin
             packet_pulse <= 0;
-            state <= state_send;
+            if(ptr >= MESSAGE_SIZE) begin
+                state <= state_idle;  
+            end
+            else state <= state_send;
         end
     end
     end

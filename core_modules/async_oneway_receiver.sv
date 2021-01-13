@@ -29,7 +29,7 @@ output logic [MESSAGE_SIZE-1:0] read_buffer
     );
     
     logic [6:0] packet_pre;
-    logic [6:0] packet_onepulse = 0;
+    logic [6:0] packet_onepulse;
     generate
     for(genvar g = 0; g < 6; ++g) begin
         debounce(packet_pre[g], din[g], clk_receive);        
@@ -40,13 +40,13 @@ output logic [MESSAGE_SIZE-1:0] read_buffer
     parameter state_recv = 1;
     parameter state_save = 2;
     logic [1:0] state = state_idle;
-    
+    logic [6:0] pulsebuf;
     always @(posedge clk_receive) begin
         for(int i = 0; i < 7; ++i)
-            if(packet_pre[i]) packet_onepulse <= 1;
-            else packet_onepulse <= 0;
+            if(packet_pre[i]) pulsebuf[i] <= 1;
+            else pulsebuf[i] <= 0;
     end
-    
+    assign packet_onepulse = packet_pre & ~pulsebuf;
     logic [MESSAGE_SIZE-1+6:0] recv_buffer = 0;
     
     always @(posedge clk_receive) begin
@@ -60,7 +60,7 @@ output logic [MESSAGE_SIZE-1:0] read_buffer
             end
         end
         else if(state == state_save) begin
-            read_buffer <= recv_buffer;
+            read_buffer <= recv_buffer[MESSAGE_SIZE-1+6:MESSAGE_SIZE%6];
             state <= state_idle;
         end
         
