@@ -2,7 +2,7 @@ module receiver#(parameter n = 1500)  //four phase handshaking receiver,paramete
                (input clk_receiver, //clock domain of the receiver.
                 input wire_req,   //require signal from sender
                 input [5:0] wire_data_deliver, //data of delivering
-                output [n-1:0] wire_data_out, //unit data you want to transfer.
+                output reg [n-1:0] wire_data_out, //unit data you want to transfer.
                 output reg reg_ack, //acknowlege signal from receiver.
                 output reg reg_valid); //Is the data enable to use? 1 means yes,0 means no.
     parameter m=n+4-n%4;
@@ -85,7 +85,14 @@ module receiver#(parameter n = 1500)  //four phase handshaking receiver,paramete
             end
         end
     end
-    assign wire_data_out=reg_data_result[n-1:0];               
+    always @(posedge clk_receiver) begin
+        if(reg_valid) begin
+            wire_data_out <= reg_data_result[n-1:0];
+        end
+        else begin
+            wire_data_out <= wire_data_out;
+        end
+    end              
                                 
                                 
 endmodule
